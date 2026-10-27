@@ -1,0 +1,44 @@
+<div class="c">
+  <div class="row hd"><div class="seg" id="lg"></div><div class="seg" id="du"></div></div>
+  <div class="st"><div><b id="wpm">0</b><small id="wl"></small></div><div><b id="acc">100%</b><small id="al"></small></div><div><b id="tm">60</b><small id="tl"></small></div><div><b id="bs">0</b><small id="bl"></small></div></div>
+  <div id="tx" class="tx"></div>
+  <input id="in" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <button class="p" id="rs"></button>
+  <div id="res" class="card res" hidden></div>
+</div>
+<style>
+.hd{justify-content:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--line);border-radius:12px;padding:3px}.seg button{background:none;padding:7px 12px}.seg button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.st{display:flex;justify-content:center;gap:10px;margin-bottom:12px}
+.st div{background:var(--card);border-radius:14px;padding:8px 14px;min-width:66px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.st b{display:block;font-size:24px}.st small{color:var(--mut);font-size:11px}
+.tx{max-width:640px;margin:0 auto 12px;font:20px/1.7 ui-monospace,Menlo,monospace;text-align:left;background:var(--card);padding:16px;border-radius:16px;min-height:120px;word-break:break-word}
+.tx i{font-style:normal;color:var(--mut)}.tx i.ok{color:var(--ink)}.tx i.no{color:#fff;background:#FF453A;border-radius:3px}
+.tx i.cur{border-left:2px solid var(--acc);animation:bl 1s steps(1) infinite}@keyframes bl{50%{border-color:transparent}}
+#in{position:absolute;opacity:0;pointer-events:none}
+.res{max-width:360px;margin:14px auto;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.7);opacity:0}}
+.res h2{margin:4px 0;font-size:40px}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);};
+var T={ru:['Москва стоит на семи холмах и славится своими парками.','Каждое утро я пью чай и читаю интересную книгу.','Кошка тихо сидела на подоконнике и смотрела на птиц.','Чтобы научиться печатать быстро, нужно тренироваться каждый день.','Осенью листья становятся жёлтыми, красными и оранжевыми.','Наша школа проводит конкурс видео, и мы готовим свой фильм.','Солнце садилось за горизонт, окрашивая небо в розовый цвет.','Программист написал код, проверил его и исправил все ошибки.'],
+en:['The quick brown fox jumps over the lazy dog.','Practice makes perfect, so keep typing every single day.','Our school is making a video contest and we are ready.','Reading books helps you learn new words and ideas.','The sun was setting and the sky turned pink and orange.','A good programmer tests the code and fixes every bug.','Music, sport and art make school life more interesting.','Every journey of a thousand miles begins with one step.']};
+var lang=L('ru','en'),dur=60,txt='',pos=0,err=0,typed=0,t0=0,tick=0,run=false,best={};
+function seg(id,opts,cur,fn){var s=$(id);s.textContent='';opts.forEach(function(o){var b=document.createElement('button');b.textContent=o[1];if(o[0]===cur)b.className='on';b.onclick=function(){fn(o[0]);};s.append(b);});}
+function ui(){seg('lg',[['ru','RU'],['en','EN']],lang,function(v){lang=v;reset();});seg('du',[[30,'30 '+L('с','s')],[60,'60 '+L('с','s')],[120,'2 '+L('мин','min')]],dur,function(v){dur=v;reset();});}
+function more(){var a=T[lang];return a[Math.random()*a.length|0];}
+function reset(){bad={};clearInterval(tick);run=false;txt=more()+' '+more()+' '+more();pos=0;err=0;typed=0;$('res').hidden=true;$('tm').textContent=dur;$('wpm').textContent=0;$('acc').textContent='100%';$('bs').textContent=best[lang+dur]||0;ui();draw();$('in').value='';$('in').focus();}
+function draw(){var x=$('tx');x.textContent='';for(var i=0;i<txt.length;i++){var c=document.createElement('i');c.textContent=txt[i];if(i<pos)c.className=c.dataset.e?'no':'ok';if(i===pos)c.className='cur';x.append(c);}mark();}
+var bad={};function mark(){var ch=$('tx').children;for(var i in bad)if(ch[i]&&i<pos)ch[i].className='no';}
+function stats(){var m=(Date.now()-t0)/60000||1/60,w=Math.round((pos-Object.keys(bad).length)/5/m);$('wpm').textContent=Math.max(0,w);$('acc').textContent=typed?Math.round((typed-err)/typed*100)+'%':'100%';return w;}
+function key(ch){if(!run){if(!$('res').hidden)return;run=true;t0=Date.now();tick=setInterval(function(){var l=dur-Math.floor((Date.now()-t0)/1000);$('tm').textContent=Math.max(0,l);stats();if(l<=0)finish();},250);}
+  typed++;if(ch!==txt[pos]){err++;bad[pos]=1;}else delete bad[pos];pos++;if(pos>=txt.length-20)txt+=' '+more();draw();}
+function back(){if(pos>0){pos--;delete bad[pos];draw();}}
+function finish(){clearInterval(tick);run=false;var w=Math.max(0,stats()),k=lang+dur,r=$('res');r.textContent='';var h=document.createElement('h2');h.textContent=w+' '+L('сл/мин','WPM');var p=document.createElement('p');p.className='mut';p.textContent=L('Точность ','Accuracy ')+$('acc').textContent;r.append(h,p);
+  if(w>(best[k]||0)){best[k]=w;Horo.save('best',best);var n=document.createElement('p');n.textContent='🏆 '+L('Новый рекорд!','New record!');r.append(n);Horo.toast(L('Новый рекорд: ','New record: ')+w);}$('bs').textContent=best[k];r.hidden=false;}
+$('in').addEventListener('input',function(){var v=this.value;this.value='';for(var i=0;i<v.length;i++)key(v[i]);});
+$('in').addEventListener('keydown',function(e){if(e.key==='Backspace'){e.preventDefault();back();}});
+$('tx').onclick=function(){$('in').focus();};document.addEventListener('click',function(e){if(e.target.tagName!=='BUTTON')$('in').focus();});
+$('wl').textContent=L('слов/мин','WPM');$('al').textContent=L('точность','accuracy');$('tl').textContent=L('секунд','seconds');$('bl').textContent=L('рекорд','best');$('rs').textContent=L('↺ Заново','↺ Restart');$('rs').onclick=function(){bad={};reset();};
+Horo.load('best').then(function(b){best=b||{};reset();});
+</script>

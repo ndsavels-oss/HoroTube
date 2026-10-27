@@ -1,0 +1,52 @@
+/* мессенджер */
+.dmrow{display:flex;align-items:center;gap:12px}.dmrow .av{flex:none}
+.dmtx{flex:1;min-width:0}.dmtx small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dmn{flex:none;min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:var(--blue);color:#fff;font-size:13px;display:grid;place-items:center}
+.dmq{flex:1;min-width:0;border:2px solid var(--white);border-radius:12px;padding:10px 12px;font:inherit;background:var(--white);color:var(--ink)}
+.dmtools{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.dmrep{display:block;margin-top:4px;border:0;background:transparent;color:var(--text2);font:inherit;font-size:12px;cursor:pointer;padding:0;text-decoration:underline}
+#stv #svHead #svRep{margin-right:2px}
+/* шахматы */
+.chess{text-align:center;padding:18px 10px}
+.chess .tab{background:var(--bg)}.chess .tab.on{background:var(--blue-dark)}
+.chmode{justify-content:center;flex-wrap:wrap}
+.chpanel{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0;text-align:left}
+.chpanel>.mine,.chpanel>.ann,.chpanel>h3,.chpanel>p{flex:1 1 100%}
+.chpanel select{border:2px solid var(--bg);border-radius:12px;padding:9px 12px;font:inherit;background:var(--white);color:var(--ink)}
+.chinfo{min-height:24px;font-weight:800;margin:8px 0}
+.chb{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));width:min(100%,480px);aspect-ratio:1;margin:0 auto;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.18);user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.chb:empty{display:none}
+.chq{position:relative;display:grid;place-items:center;cursor:pointer}
+.chq.lt{background:#E8EEF7}.chq.dk{background:#7C9CC4}
+.chq.lm{box-shadow:inset 0 0 0 100px rgba(255,214,10,.38)}
+.chq.hn{box-shadow:inset 0 0 0 4px #22C55E,inset 0 0 0 100px rgba(34,197,94,.25)}
+.chq.sl{box-shadow:inset 0 0 0 100px rgba(0,123,255,.45)}
+.chq.ck{background:radial-gradient(circle,#FF4D4D 0,#FF4D4D 35%,transparent 75%)}
+.chq.tg::after{content:'';width:28%;height:28%;border-radius:50%;background:rgba(11,15,24,.28);position:absolute}
+.chq.tc::after{content:'';position:absolute;inset:4%;border-radius:50%;border:4px solid rgba(11,15,24,.3)}
+.chp{font-size:min(7.4vw,46px);line-height:1;font-family:'Segoe UI Symbol','DejaVu Sans','Noto Sans Symbols 2',sans-serif;position:relative;z-index:1}
+.chp.pw{color:#fff;text-shadow:0 0 2px #0B0F18,0 0 2px #0B0F18,0 1px 3px rgba(0,0,0,.6)}
+.chp.pb{color:#0B0F18;text-shadow:0 0 2px rgba(255,255,255,.5)}
+.chq i{position:absolute;font-style:normal;font-size:10px;font-weight:700;color:rgba(11,15,24,.55);pointer-events:none}
+.chq .chr{top:2px;left:3px}.chq .chf{bottom:1px;right:3px}
+.chbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.chpr{font-size:26px;padding:4px 14px}
+.chmoves{margin-top:12px;color:var(--text2);font-size:14px;max-height:90px;overflow-y:auto;text-align:left;line-height:1.6}
+/* премиум */
+.prcard{background:linear-gradient(135deg,#FFD54F,#FFB300);color:#3A2A00;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:4px;margin-bottom:18px}
+.prcard b{font-size:20px;font-weight:800}.prcard span{font-weight:700}.prcard small{opacity:.8}
+.prplans{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:10px}
+.prplan{background:var(--white);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;border:2px solid transparent}
+.prplan.best{border-color:#FFB300}
+.prplan strong{font-size:24px;font-weight:800}.prplan small{color:var(--text2);min-height:18px}
+.prplan button{margin-top:6px}
+.prlist{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.prlist li{background:var(--white);border-radius:12px;padding:10px 14px}
+.prlog{display:flex;gap:10px;align-items:baseline;background:var(--white);border-radius:12px;padding:10px 14px;margin-bottom:6px}
+.prlog span{flex:1}.prlog small{color:var(--text2)}.prlog .plus{color:#2E7D32}.prlog .minus{color:#C62828}
+.prtier{background:var(--white);border-radius:18px;padding:16px;margin-bottom:14px;border:2px solid transparent}
+.prtier.best{border-color:#FFB300}
+.prtier h3{font-size:18px;font-weight:800}
+.prtier .prplan{background:var(--bg);padding:12px}.prtier .prplan strong{font-size:20px}
+.wwhy{display:block;margin:6px 0 0 18px;color:var(--text2);font-size:13px;flex-basis:100%}
+.wwhy li{margin-bottom:2px}

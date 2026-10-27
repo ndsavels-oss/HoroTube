@@ -1,0 +1,45 @@
+/* ===== QR-код и Обновления (25.10) ===== */
+#p-xqr,#p-upd{background:var(--bg)}
+.xqr{max-width:460px;margin:0 auto;padding:18px 16px 40px;text-align:center}
+.xqr h2{margin:6px 0 14px}
+.xqrin{width:100%;box-sizing:border-box;min-height:70px;border-radius:16px;border:1px solid color-mix(in srgb,var(--line) 35%,transparent);padding:12px 14px;font:inherit;background:var(--white);color:inherit;resize:vertical}
+.xqrcol{display:flex;gap:10px;justify-content:center;margin:12px 0}
+.xqrdot{width:34px;height:34px;border-radius:50%;border:0;padding:0;box-shadow:0 0 0 1px rgba(0,0,0,.15);transition:transform .2s cubic-bezier(.2,1.4,.4,1)}
+.xqrdot.on{transform:scale(1.18);box-shadow:0 0 0 3px #0A84FF}
+.xqrcv{width:min(300px,80vw);height:auto;border-radius:22px;box-shadow:0 12px 40px rgba(0,0,0,.18);animation:xqrpop .45s cubic-bezier(.2,1.3,.4,1)}
+@keyframes xqrpop{from{transform:scale(.85);opacity:0}}
+.xqrrow{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.xqrbtn{border:0;border-radius:14px;padding:12px 18px;font-weight:700;background:#0A84FF;color:#fff;cursor:pointer}.xqrbtn.alt{background:rgba(120,120,128,.18);color:inherit}
+.xqrtip{color:var(--text2);font-size:13px;margin-top:14px}
+.upd{max-width:620px;margin:0 auto;padding:20px 16px 50px}
+.updhero{display:flex;gap:18px;align-items:center;padding:20px;border-radius:24px;background:var(--white);box-shadow:0 8px 30px rgba(0,0,0,.08)}
+html.glass .updhero,html.glass .updrel,html.glass .updadm{background:rgba(255,255,255,.55);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6)}
+.updhero h2{margin:0 0 4px}.updtx{flex:1;min-width:0}
+.updnew{font-weight:700;color:#0A84FF;margin:4px 0 10px}.updok2{color:#34C759;font-weight:700;margin:4px 0}
+.updspin svg{animation:updrot 2.4s cubic-bezier(.6,0,.4,1) infinite}@keyframes updrot{to{transform:rotate(360deg)}}
+.updok{animation:xqrpop .5s cubic-bezier(.2,1.3,.4,1)}
+.updbtn{display:inline-block;border:0;border-radius:14px;padding:11px 22px;font-weight:700;background:#0A84FF;color:#fff;cursor:pointer;text-decoration:none;margin-top:6px}
+.updbtn:disabled{opacity:.5}.updhint{font-size:13px;margin-top:10px}
+.updh{margin:26px 4px 10px}
+.updrel{position:relative;padding:14px 16px;border-radius:18px;background:var(--white);margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);animation:updin .4s ease backwards}
+.updrel:nth-child(n+4){animation-delay:.08s}.updrel.off{opacity:.55}
+@keyframes updin{from{opacity:0;transform:translateY(10px)}}
+.updrh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.updrh b{font-size:17px}
+.updtag{font-style:normal;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(52,199,89,.15);color:#248A3D}.updtag.red{background:rgba(255,59,48,.14);color:#D70015}
+.updnotes{white-space:pre-wrap;margin:8px 0 0;line-height:1.45}
+.updmini{position:absolute;right:12px;top:12px;border:0;border-radius:10px;padding:5px 10px;font-size:13px;background:rgba(120,120,128,.16);color:inherit;cursor:pointer}
+.updadm{margin-top:18px;padding:18px;border-radius:22px;background:var(--white);border:2px dashed rgba(10,132,255,.35)}
+.updadm h3{margin:0 0 6px}.updadm input[type=file]{margin:8px 0;max-width:100%}
+.updin{display:block;width:100%;box-sizing:border-box;margin:8px 0;border-radius:12px;border:1px solid color-mix(in srgb,var(--line) 35%,transparent);padding:10px 12px;font:inherit;background:transparent;color:inherit}
+.updempty{text-align:center;margin-top:24px}
+html.updgo body{transition:filter .6s,transform .6s;filter:blur(8px);transform:scale(.96)}
+/* цена приложения в Студии кода */
+.cdprice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 10px}
+.cdpsel{border-radius:10px;border:1px solid color-mix(in srgb,var(--line) 40%,transparent);padding:6px 10px;font:inherit;background:var(--white);color:var(--ink)}
+.cdphint{color:var(--text2)}
+
+/* обновления приложений учеников */
+.cdst.blue{background:color-mix(in srgb,#007AFF 16%,transparent);color:#0062CC}
+.cdlive{background:color-mix(in srgb,#007AFF 10%,var(--white));border-radius:12px;padding:10px 14px;margin:0;font-size:14px;line-height:1.4}
+.cdundo{border:0;background:none;color:#007AFF;font:inherit;font-weight:600;cursor:pointer;padding:0}
+.cdwhat{width:100%;min-height:90px;box-sizing:border-box;border-radius:12px;border:1px solid var(--line,#ccc);padding:10px;font:inherit;resize:vertical;background:var(--white);color:inherit}

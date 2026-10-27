@@ -1,0 +1,44 @@
+<div class="c">
+  <div class="row hd"><h1>2048</h1><div class="sc"><small id="sl"></small><b id="s">0</b></div><div class="sc"><small id="bl"></small><b id="b">0</b></div></div>
+  <div id="g"><div class="bg" id="bg"></div></div>
+  <button class="p" id="nw"></button>
+  <p class="mut" id="tip"></p>
+</div>
+<style>
+body{background:#FAF8EF;color:#776E65}
+h1{margin:0;font-size:44px;color:#776E65;flex:1;text-align:left}
+.hd{width:min(420px,92vw);margin:0 auto 12px}
+.sc{background:#BBADA0;color:#fff;border-radius:10px;padding:6px 14px;min-width:64px}
+.sc small{display:block;font-size:11px;font-weight:700;opacity:.85;text-transform:uppercase}.sc b{font-size:20px}
+#g{position:relative;width:min(420px,92vw);aspect-ratio:1;margin:0 auto 14px;background:#BBADA0;border-radius:14px;touch-action:none}
+.bg{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);gap:3%;padding:3%}
+.bg i{background:rgba(238,228,218,.35);border-radius:8px}
+.t{position:absolute;width:21.25%;height:21.25%;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;transition:left .12s ease-in-out,top .12s ease-in-out}
+.t.n{animation:ap .2s .1s ease backwards}.t.m{animation:mg .22s .1s ease}
+@keyframes ap{from{transform:scale(0)}}@keyframes mg{50%{transform:scale(1.2)}}
+.over{position:absolute;inset:0;border-radius:14px;background:rgba(238,228,218,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:36px;font-weight:800;animation:ap .4s}
+#nw{background:#8F7A66}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},G,score=0,best=0,id=0,moved=false;
+var COL={2:['#EEE4DA','#776E65'],4:['#EDE0C8','#776E65'],8:['#F2B179','#fff'],16:['#F59563','#fff'],32:['#F67C5F','#fff'],64:['#F65E3B','#fff'],128:['#EDCF72','#fff'],256:['#EDCC61','#fff'],512:['#EDC850','#fff'],1024:['#EDC53F','#fff'],2048:['#EDC22E','#fff']};
+$('sl').textContent=L('Счёт','Score');$('bl').textContent=L('Рекорд','Best');$('nw').textContent=L('Новая игра','New game');$('tip').textContent=L('Свайп или стрелки. Соединяй одинаковые плитки до 2048!','Swipe or use arrows. Join equal tiles to reach 2048!');
+for(var i=0;i<16;i++)$('bg').append(document.createElement('i'));
+function empty(){var e=[];for(var r=0;r<4;r++)for(var c=0;c<4;c++)if(!G[r][c])e.push([r,c]);return e;}
+function add(){var e=empty();if(!e.length)return;var p=e[Math.random()*e.length|0];G[p[0]][p[1]]={v:Math.random()<.9?2:4,id:++id,n:1};}
+function init(){G=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];score=0;add();add();draw();}
+function draw(over){var g=$('g');[].slice.call(g.querySelectorAll('.t,.over')).forEach(function(x){if(!x.dataset.keep)x.remove();});
+  for(var r=0;r<4;r++)for(var c=0;c<4;c++){var t=G[r][c];if(!t)continue;var d=document.createElement('div');d.className='t'+(t.n?' n':'')+(t.m?' m':'');var col=COL[t.v]||['#3C3A32','#fff'];d.style.background=col[0];d.style.color=col[1];d.style.fontSize=t.v<100?'clamp(24px,8vw,44px)':t.v<1000?'clamp(20px,7vw,38px)':'clamp(16px,5.5vw,30px)';d.textContent=t.v;d.style.left=(3+c*24.25)+'%';d.style.top=(3+r*24.25)+'%';g.append(d);t.n=0;t.m=0;}
+  $('s').textContent=score;if(score>best){best=score;Horo.save('best',best);}$('b').textContent=best;
+  if(over){var o=document.createElement('div');o.className='over';o.textContent=L('Игра окончена','Game over');g.append(o);}}
+function line(a){var t=a.filter(Boolean),out=[];for(var i=0;i<t.length;i++){if(t[i+1]&&t[i].v===t[i+1].v){var v=t[i].v*2;out.push({v:v,id:++id,m:1});score+=v;if(v===2048)Horo.toast('🏆 2048!');i++;}else out.push(t[i]);}while(out.length<4)out.push(0);return out;}
+function move(d){var old=JSON.stringify(G.map(function(r){return r.map(function(t){return t&&t.v;});}));
+  for(var k=0;k<4;k++){var a=[];for(var j=0;j<4;j++){var r=d==='l'||d==='r'?k:(d==='u'?j:3-j),c=d==='u'||d==='d'?k:(d==='l'?j:3-j);a.push(G[r][c]);}var o=line(a);for(var j2=0;j2<4;j2++){var r2=d==='l'||d==='r'?k:(d==='u'?j2:3-j2),c2=d==='u'||d==='d'?k:(d==='l'?j2:3-j2);G[r2][c2]=o[j2];}}
+  if(JSON.stringify(G.map(function(r){return r.map(function(t){return t&&t.v;});}))===old)return;add();draw(dead());Horo.save('g',{G:G,s:score});}
+function dead(){if(empty().length)return false;for(var r=0;r<4;r++)for(var c=0;c<4;c++){var v=G[r][c].v;if((c<3&&G[r][c+1].v===v)||(r<3&&G[r+1][c].v===v))return false;}return true;}
+addEventListener('keydown',function(e){var m={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d'}[e.key];if(m){e.preventDefault();move(m);}});
+var sx,sy;$('g').addEventListener('pointerdown',function(e){sx=e.clientX;sy=e.clientY;});
+$('g').addEventListener('pointerup',function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;move(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));});
+$('nw').onclick=init;
+Promise.all([Horo.load('best'),Horo.load('g')]).then(function(r){best=r[0]||0;if(r[1]&&r[1].G){G=r[1].G;score=r[1].s||0;draw(dead());}else init();});
+</script>

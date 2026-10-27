@@ -1,0 +1,29 @@
+<div class="c">
+  <h1 id="h"></h1>
+  <div class="row hd"><b id="mv"></b><b id="tm">⏱ 0</b></div>
+  <div id="b"></div>
+  <button class="p" id="sh"></button>
+  <p class="mut" id="best"></p>
+</div>
+<style>
+.hd{justify-content:space-between;width:min(360px,90vw);margin:0 auto 10px}
+#b{position:relative;width:min(360px,90vw);aspect-ratio:1;margin:0 auto 14px;background:var(--line);border-radius:22px}
+#b button{position:absolute;width:calc(25% - 8px);height:calc(25% - 8px);margin:4px;border-radius:14px;font-size:clamp(20px,6vw,30px);font-weight:800;color:#fff;background:linear-gradient(145deg,#FF9F0A,#FF6A00);box-shadow:0 4px 0 rgba(0,0,0,.15);transition:left .16s cubic-bezier(.3,1.2,.5,1),top .16s cubic-bezier(.3,1.2,.5,1);padding:0}
+#b button.ok{background:linear-gradient(145deg,#34C759,#0A8F3C)}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},T,moves=0,t0=0,tick,best=0,btns={};
+$('h').textContent=L('Пятнашки','15 Puzzle');$('sh').textContent=L('Перемешать','Shuffle');
+function pos(b,i){b.style.left=(i%4)*25+'%';b.style.top=(i/4|0)*25+'%';}
+function draw(){T.forEach(function(v,i){if(v){pos(btns[v],i);btns[v].classList.toggle('ok',v===i+1);}});$('mv').textContent=L('Ходов: ','Moves: ')+moves;}
+function solvable(a){var inv=0;for(var i=0;i<16;i++)for(var j=i+1;j<16;j++)if(a[i]&&a[j]&&a[i]>a[j])inv++;var row=3-(a.indexOf(0)/4|0);return (inv+row)%2===0;}
+function shuffle(){do{T=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0].sort(function(){return Math.random()-.5;});}while(!solvable(T)||T.every(function(v,i){return v===(i+1)%16;}));moves=0;clearInterval(tick);t0=0;$('tm').textContent='⏱ 0';draw();}
+function tap(v){var i=T.indexOf(v),z=T.indexOf(0);if(!((i%4===z%4&&Math.abs(i-z)===4)||((i/4|0)===(z/4|0)&&Math.abs(i-z)===1)))return;
+  if(!t0){t0=Date.now();tick=setInterval(function(){$('tm').textContent='⏱ '+Math.floor((Date.now()-t0)/1000);},500);}
+  T[z]=v;T[i]=0;moves++;draw();
+  if(T.every(function(x,k){return x===(k+1)%16;})){clearInterval(tick);var s=Math.floor((Date.now()-t0)/1000);Horo.toast(L('Собрано! ','Solved! ')+moves+L(' ходов, ',' moves, ')+s+L(' с',' s'));if(!best||moves<best){best=moves;Horo.save('best',best);}$('best').textContent=L('Рекорд: ','Best: ')+best+L(' ходов',' moves');}}
+for(var v=1;v<16;v++){(function(v){var b=document.createElement('button');b.textContent=v;b.onclick=function(){tap(v);};btns[v]=b;$('b').append(b);})(v);}
+addEventListener('keydown',function(e){var z=T.indexOf(0),m={ArrowUp:z+4,ArrowDown:z-4,ArrowLeft:z%4<3?z+1:-1,ArrowRight:z%4?z-1:-1}[e.code];if(m!==undefined&&m>=0&&m<16){e.preventDefault();tap(T[m]);}});
+$('sh').onclick=shuffle;
+Horo.load('best').then(function(b){best=b||0;if(best)$('best').textContent=L('Рекорд: ','Best: ')+best+L(' ходов',' moves');shuffle();});
+</script>

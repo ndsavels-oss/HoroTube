@@ -1,0 +1,43 @@
+<div class="c">
+  <h1 id="h"></h1>
+  <div class="seg" id="md"></div>
+  <p id="st"></p>
+  <div id="b"></div>
+  <p class="score" id="sc"></p>
+  <button class="p" id="nw"></button>
+</div>
+<style>
+.seg{display:inline-flex;background:var(--line);border-radius:12px;padding:3px}
+.seg button{background:none}.seg button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#st{font-size:19px;font-weight:600;min-height:26px}
+#b{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(330px,86vw);margin:10px auto}
+#b button{aspect-ratio:1;font-size:56px;font-weight:800;background:var(--card);border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:0}
+#b button span{display:inline-block;animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(0)}}
+#b button.w{background:#30D158;color:#fff}
+.x{color:#0A84FF}.o{color:#FF453A}
+.score{color:var(--mut)}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},B,turn,over,ai=true,S={x:0,o:0,d:0};
+var LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+$('h').textContent=L('Крестики-нолики','Tic-Tac-Toe');$('nw').textContent=L('Новая партия','New game');
+function seg(){var s=$('md');s.textContent='';[[true,L('С компьютером','Vs computer')],[false,L('Вдвоём','Two players')]].forEach(function(x){var b=document.createElement('button');b.textContent=x[1];if(x[0]===ai)b.className='on';b.onclick=function(){ai=x[0];seg();init();};s.append(b);});}
+function win(b){for(var i=0;i<8;i++){var l=LINES[i];if(b[l[0]]&&b[l[0]]===b[l[1]]&&b[l[1]]===b[l[2]])return l;}return null;}
+function mm(b,p){var w=win(b);if(w)return b[w[0]]==='o'?10:-10;if(b.every(Boolean))return 0;var best=p==='o'?-99:99;
+  for(var i=0;i<9;i++)if(!b[i]){b[i]=p;var v=mm(b,p==='o'?'x':'o');b[i]='';best=p==='o'?Math.max(best,v):Math.min(best,v);}return best;}
+function aiMove(){var best=-99,mv=[];for(var i=0;i<9;i++)if(!B[i]){B[i]='o';var v=mm(B,'x');B[i]='';if(v>best){best=v;mv=[i];}else if(v===best)mv.push(i);}
+  /* иногда ошибается, чтобы можно было выиграть */
+  if(Math.random()<.15){mv=[];for(var j=0;j<9;j++)if(!B[j])mv.push(j);}
+  put(mv[Math.random()*mv.length|0]);}
+function put(i){if(over||B[i])return;B[i]=turn;draw();var w=win(B);
+  if(w){over=true;w.forEach(function(k){$('b').children[k].classList.add('w');});S[turn]++;$('st').textContent=(turn==='x'?'❌':'⭕')+L(' победил!',' wins!');save();return;}
+  if(B.every(Boolean)){over=true;S.d++;$('st').textContent=L('Ничья','Draw');save();return;}
+  turn=turn==='x'?'o':'x';status();if(ai&&turn==='o')setTimeout(aiMove,380);}
+function status(){$('st').textContent=(turn==='x'?'❌':'⭕')+' '+L('ходит','to move');}
+function save(){Horo.save('s',S);$('sc').textContent='❌ '+S.x+'  ·  '+L('ничьих ','draws ')+S.d+'  ·  ⭕ '+S.o;}
+function draw(){var b=$('b');b.textContent='';B.forEach(function(v,i){var c=document.createElement('button');if(v){var s=document.createElement('span');s.className=v;s.textContent=v==='x'?'✕':'○';c.append(s);}c.onclick=function(){if(!(ai&&turn==='o'))put(i);};b.append(c);});}
+function init(){B=['','','','','','','','',''];turn='x';over=false;draw();status();}
+$('nw').onclick=init;
+Horo.load('s').then(function(s){if(s)S=s;save();seg();init();});
+</script>

@@ -1,0 +1,37 @@
+<div class="c">
+  <div class="row hd"><b id="sc">0</b><span class="mut" id="best"></span></div>
+  <canvas id="c" width="400" height="400"></canvas>
+  <p class="mut" id="tip"></p>
+  <div class="pad"><button data-d="0,-1">▲</button><div><button data-d="-1,0">◀</button><button data-d="1,0">▶</button></div><button data-d="0,1">▼</button></div>
+</div>
+<style>
+body{background:#0B1E12;color:#fff}
+.hd{justify-content:space-between;max-width:400px;margin:0 auto 8px;font-size:22px}
+canvas{width:min(400px,92vw);aspect-ratio:1;border-radius:18px;background:#123B22;touch-action:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.pad{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px}
+.pad div{display:flex;gap:60px}
+.pad button{width:64px;height:52px;font-size:22px;background:rgba(255,255,255,.12);color:#fff}
+</style>
+<script>
+var N=20,S=20,cv=document.getElementById('c'),g=cv.getContext('2d'),sn,dir,nd,food,score,best=0,alive=false,t=0,speed=130;
+document.getElementById('tip').textContent=L('Стрелки, свайп или кнопки. Нажми, чтобы начать.','Arrows, swipe or buttons. Tap to start.');
+function place(){do{food=[Math.random()*N|0,Math.random()*N|0];}while(sn.some(function(p){return p[0]===food[0]&&p[1]===food[1];}));}
+function reset(){sn=[[10,10],[9,10],[8,10]];dir=[1,0];nd=[1,0];score=0;speed=130;place();upd();}
+function upd(){document.getElementById('sc').textContent='🍎 '+score;document.getElementById('best').textContent=L('Рекорд: ','Best: ')+best;}
+function start(){if(alive)return;reset();alive=true;clearTimeout(t);step();}
+function step(){dir=nd;var h=[sn[0][0]+dir[0],sn[0][1]+dir[1]];
+  if(h[0]<0||h[1]<0||h[0]>=N||h[1]>=N||sn.some(function(p){return p[0]===h[0]&&p[1]===h[1];})){alive=false;if(score>best){best=score;Horo.save('best',best);Horo.toast(L('Новый рекорд: ','New record: ')+best);}upd();draw(true);return;}
+  sn.unshift(h);if(h[0]===food[0]&&h[1]===food[1]){score++;speed=Math.max(60,speed-3);place();upd();}else sn.pop();
+  draw();t=setTimeout(step,speed);}
+function draw(dead){g.fillStyle='#123B22';g.fillRect(0,0,400,400);
+  for(var i=0;i<N;i++)for(var j=0;j<N;j++)if((i+j)%2){g.fillStyle='#154427';g.fillRect(i*S,j*S,S,S);}
+  g.fillStyle='#FF453A';g.beginPath();g.arc(food[0]*S+10,food[1]*S+10,8,0,7);g.fill();
+  sn.forEach(function(p,k){g.fillStyle=dead?'#8E8E93':k?'#30D158':'#A4F28F';g.beginPath();g.roundRect?g.roundRect(p[0]*S+1,p[1]*S+1,S-2,S-2,6):g.rect(p[0]*S+1,p[1]*S+1,S-2,S-2);g.fill();});
+  if(!alive){g.fillStyle='rgba(0,0,0,.45)';g.fillRect(0,0,400,400);g.fillStyle='#fff';g.font='bold 26px system-ui';g.textAlign='center';g.fillText(dead?L('Игра окончена','Game over'):L('Нажми, чтобы начать','Tap to start'),200,195);g.font='18px system-ui';g.fillText(dead?L('Ещё раз — нажми','Tap to play again'):'',200,228);}}
+function turn(x,y){if(!alive){start();return;}if(x===-dir[0]&&y===-dir[1])return;nd=[x,y];}
+addEventListener('keydown',function(e){var k={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],KeyW:[0,-1],KeyS:[0,1],KeyA:[-1,0],KeyD:[1,0]}[e.code];if(k){e.preventDefault();turn(k[0],k[1]);}else if(e.code==='Space'){e.preventDefault();start();}});
+document.querySelectorAll('[data-d]').forEach(function(b){b.onclick=function(){var d=b.dataset.d.split(',');turn(+d[0],+d[1]);};});
+var sx,sy;cv.addEventListener('pointerdown',function(e){sx=e.clientX;sy=e.clientY;});
+cv.addEventListener('pointerup',function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)+Math.abs(dy)<20){start();return;}if(Math.abs(dx)>Math.abs(dy))turn(dx>0?1:-1,0);else turn(0,dy>0?1:-1);});
+Horo.load('best').then(function(b){best=b||0;reset();draw();});
+</script>

@@ -1,0 +1,55 @@
+<div class="top row"><input id="q"><div class="seg"><button id="mt" class="on"></button><button id="mq"></button></div></div>
+<div id="leg" class="leg"></div>
+<div id="tb" class="tb"></div>
+<div id="quiz" class="quiz" hidden><p class="mut" id="qq"></p><h2 id="qn"></h2><div id="qo" class="qo"></div><p id="qs" class="mut"></p></div>
+<div id="dl" class="dl" hidden><div class="card dc"><button id="dx" class="x">✕</button><div id="dbig" class="big"></div><h2 id="dn"></h2><p id="dm" class="mut"></p></div></div>
+<style>
+.top{justify-content:center;margin-bottom:8px}#q{flex:1;max-width:320px}
+.seg{display:inline-flex;background:var(--line);border-radius:12px;padding:3px}.seg button{background:none;padding:7px 12px}.seg button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.leg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:10px}
+.leg button{font-size:12px;padding:5px 10px;border-radius:20px;color:#1c1c1e}.leg button.off{opacity:.3}
+.tb{display:grid;grid-template-columns:repeat(18,minmax(30px,1fr));grid-auto-rows:minmax(38px,auto);gap:3px;overflow-x:auto;min-width:0}
+.tb b{border-radius:6px;padding:2px 3px;cursor:pointer;color:#1c1c1e;display:flex;flex-direction:column;justify-content:space-between;font-weight:400;transition:transform .15s,opacity .2s;min-width:30px}
+.tb b:hover{transform:scale(1.15);z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.tb b small{font-size:9px;opacity:.7}.tb b span{font-size:15px;font-weight:800;text-align:center}
+.tb b.dim{opacity:.12}.tb .gap{grid-column:1/-1;height:8px}
+.dl{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;animation:fi .2s}
+.dc{position:relative;width:min(320px,86vw);text-align:center;animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
+@keyframes fi{from{opacity:0}}@keyframes pop{from{transform:scale(.6);opacity:0}}
+.big{width:110px;height:110px;margin:6px auto 0;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1c1c1e}
+.big span{font-size:44px;font-weight:800}.x{position:absolute;right:10px;top:10px;padding:4px 9px}
+.quiz{text-align:center;max-width:420px;margin:20px auto}.quiz h2{font-size:30px}
+.qo{display:grid;grid-template-columns:1fr 1fr;gap:10px}.qo button{font-size:26px;font-weight:800;padding:18px}
+.qo button.ok{background:#30D158;color:#fff}.qo button.no{background:#FF453A;color:#fff}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);};
+var RAW="H|Водород|Hydrogen|1.008|n;He|Гелий|Helium|4.003|g;Li|Литий|Lithium|6.94|a;Be|Бериллий|Beryllium|9.012|e;B|Бор|Boron|10.81|m;C|Углерод|Carbon|12.01|n;N|Азот|Nitrogen|14.01|n;O|Кислород|Oxygen|16.00|n;F|Фтор|Fluorine|19.00|h;Ne|Неон|Neon|20.18|g;Na|Натрий|Sodium|22.99|a;Mg|Магний|Magnesium|24.31|e;Al|Алюминий|Aluminium|26.98|p;Si|Кремний|Silicon|28.09|m;P|Фосфор|Phosphorus|30.97|n;S|Сера|Sulfur|32.06|n;Cl|Хлор|Chlorine|35.45|h;Ar|Аргон|Argon|39.95|g;K|Калий|Potassium|39.10|a;Ca|Кальций|Calcium|40.08|e;Sc|Скандий|Scandium|44.96|t;Ti|Титан|Titanium|47.87|t;V|Ванадий|Vanadium|50.94|t;Cr|Хром|Chromium|52.00|t;Mn|Марганец|Manganese|54.94|t;Fe|Железо|Iron|55.85|t;Co|Кобальт|Cobalt|58.93|t;Ni|Никель|Nickel|58.69|t;Cu|Медь|Copper|63.55|t;Zn|Цинк|Zinc|65.38|t;Ga|Галлий|Gallium|69.72|p;Ge|Германий|Germanium|72.63|m;As|Мышьяк|Arsenic|74.92|m;Se|Селен|Selenium|78.97|n;Br|Бром|Bromine|79.90|h;Kr|Криптон|Krypton|83.80|g;Rb|Рубидий|Rubidium|85.47|a;Sr|Стронций|Strontium|87.62|e;Y|Иттрий|Yttrium|88.91|t;Zr|Цирконий|Zirconium|91.22|t;Nb|Ниобий|Niobium|92.91|t;Mo|Молибден|Molybdenum|95.95|t;Tc|Технеций|Technetium|98|t;Ru|Рутений|Ruthenium|101.1|t;Rh|Родий|Rhodium|102.9|t;Pd|Палладий|Palladium|106.4|t;Ag|Серебро|Silver|107.9|t;Cd|Кадмий|Cadmium|112.4|t;In|Индий|Indium|114.8|p;Sn|Олово|Tin|118.7|p;Sb|Сурьма|Antimony|121.8|m;Te|Теллур|Tellurium|127.6|m;I|Иод|Iodine|126.9|h;Xe|Ксенон|Xenon|131.3|g;Cs|Цезий|Caesium|132.9|a;Ba|Барий|Barium|137.3|e;La|Лантан|Lanthanum|138.9|l;Ce|Церий|Cerium|140.1|l;Pr|Празеодим|Praseodymium|140.9|l;Nd|Неодим|Neodymium|144.2|l;Pm|Прометий|Promethium|145|l;Sm|Самарий|Samarium|150.4|l;Eu|Европий|Europium|152.0|l;Gd|Гадолиний|Gadolinium|157.3|l;Tb|Тербий|Terbium|158.9|l;Dy|Диспрозий|Dysprosium|162.5|l;Ho|Гольмий|Holmium|164.9|l;Er|Эрбий|Erbium|167.3|l;Tm|Тулий|Thulium|168.9|l;Yb|Иттербий|Ytterbium|173.0|l;Lu|Лютеций|Lutetium|175.0|l;Hf|Гафний|Hafnium|178.5|t;Ta|Тантал|Tantalum|180.9|t;W|Вольфрам|Tungsten|183.8|t;Re|Рений|Rhenium|186.2|t;Os|Осмий|Osmium|190.2|t;Ir|Иридий|Iridium|192.2|t;Pt|Платина|Platinum|195.1|t;Au|Золото|Gold|197.0|t;Hg|Ртуть|Mercury|200.6|t;Tl|Таллий|Thallium|204.4|p;Pb|Свинец|Lead|207.2|p;Bi|Висмут|Bismuth|209.0|p;Po|Полоний|Polonium|209|p;At|Астат|Astatine|210|h;Rn|Радон|Radon|222|g;Fr|Франций|Francium|223|a;Ra|Радий|Radium|226|e;Ac|Актиний|Actinium|227|c;Th|Торий|Thorium|232.0|c;Pa|Протактиний|Protactinium|231.0|c;U|Уран|Uranium|238.0|c;Np|Нептуний|Neptunium|237|c;Pu|Плутоний|Plutonium|244|c;Am|Америций|Americium|243|c;Cm|Кюрий|Curium|247|c;Bk|Берклий|Berkelium|247|c;Cf|Калифорний|Californium|251|c;Es|Эйнштейний|Einsteinium|252|c;Fm|Фермий|Fermium|257|c;Md|Менделевий|Mendelevium|258|c;No|Нобелий|Nobelium|259|c;Lr|Лоуренсий|Lawrencium|266|c;Rf|Резерфордий|Rutherfordium|267|t;Db|Дубний|Dubnium|268|t;Sg|Сиборгий|Seaborgium|269|t;Bh|Борий|Bohrium|270|t;Hs|Хассий|Hassium|277|t;Mt|Мейтнерий|Meitnerium|278|u;Ds|Дармштадтий|Darmstadtium|281|u;Rg|Рентгений|Roentgenium|282|u;Cn|Коперниций|Copernicium|285|t;Nh|Нихоний|Nihonium|286|u;Fl|Флеровий|Flerovium|289|u;Mc|Московий|Moscovium|290|u;Lv|Ливерморий|Livermorium|293|u;Ts|Теннессин|Tennessine|294|u;Og|Оганесон|Oganesson|294|u",EL=RAW.split(';').map(function(s,i){var a=s.split('|');return {z:i+1,s:a[0],n:L(a[1],a[2]),m:a[3],c:a[4]};});
+var CAT={a:['#FF9F7A',L('Щелочные металлы','Alkali metals')],e:['#FFD27A',L('Щёлочноземельные','Alkaline earth')],t:['#F7B2C4',L('Переходные металлы','Transition metals')],p:['#B9D7F5',L('Постпереходные','Post-transition')],m:['#BFE6C4',L('Полуметаллы','Metalloids')],n:['#9FE2D8',L('Неметаллы','Nonmetals')],h:['#F5EE9E',L('Галогены','Halogens')],g:['#D5C3F5',L('Благородные газы','Noble gases')],l:['#FFC7A8',L('Лантаноиды','Lanthanides')],c:['#F2B6E0',L('Актиноиды','Actinides')],u:['#D9D9DE',L('Свойства неизвестны','Unknown')]};
+var off={};
+function pos(z){if(z===1)return [1,1];if(z===2)return [1,18];
+  var P=[[3,2],[11,3]];for(var i=0;i<2;i++){var s=P[i][0];if(z>=s&&z<s+8){var k=z-s;return [P[i][1],k<2?k+1:k+11];}}
+  if(z<=36)return [4,z-18];if(z<=54)return [5,z-36];
+  var b=z<=86?55:87,r=z<=86?6:7,k=z-b;if(k<2)return [r,k+1];if(k<17)return [r+3,k+1];return [r,k-14];}
+function grp(z){var p=pos(z);return p[0]>7?3:p[1];}
+function per(z){var p=pos(z);return p[0]>7?p[0]-3:p[0];}
+function draw(){var t=$('tb'),q=$('q').value.trim().toLowerCase();t.textContent='';
+  EL.forEach(function(e){var p=pos(e.z),b=document.createElement('b');b.style.gridRow=p[0];b.style.gridColumn=p[1];b.style.background=CAT[e.c][0];
+    var z=document.createElement('small');z.textContent=e.z;var s=document.createElement('span');s.textContent=e.s;b.append(z,s);b.title=e.n;
+    if(off[e.c]||(q&&e.s.toLowerCase()!==q&&e.n.toLowerCase().indexOf(q)<0&&String(e.z)!==q))b.className='dim';
+    b.onclick=function(){show(e);};t.append(b);});
+  var g=document.createElement('div');g.className='gap';g.style.gridRow=8;t.append(g);}
+function leg(){var l=$('leg');l.textContent='';Object.keys(CAT).forEach(function(k){var b=document.createElement('button');b.style.background=CAT[k][0];b.textContent=CAT[k][1];if(off[k])b.className='off';b.onclick=function(){off[k]=!off[k];leg();draw();};l.append(b);});}
+function show(e){var B=$('dbig');B.textContent='';B.style.background=CAT[e.c][0];var z=document.createElement('small');z.textContent=e.z;var s=document.createElement('span');s.textContent=e.s;B.append(z,s);
+  $('dn').textContent=e.n;$('dm').textContent=CAT[e.c][1]+' · '+L('атомная масса ','atomic mass ')+e.m+' · '+L('период ','period ')+per(e.z)+(pos(e.z)[0]>7?'':' · '+L('группа ','group ')+grp(e.z));$('dl').hidden=false;}
+$('dx').onclick=$('dl').onclick=function(ev){if(ev.target===$('dl')||ev.target===$('dx'))$('dl').hidden=true;};
+var sc=0,tot=0,best=0;
+function quiz(){var pool=EL.slice(0,56),e=pool[Math.random()*pool.length|0],o=[e];while(o.length<4){var x=pool[Math.random()*pool.length|0];if(o.indexOf(x)<0)o.push(x);}o.sort(function(){return Math.random()-.5;});
+  $('qq').textContent=L('Какой символ у элемента?','Which symbol is this element?');$('qn').textContent=e.n;var Q=$('qo');Q.textContent='';
+  o.forEach(function(x){var b=document.createElement('button');b.textContent=x.s;b.onclick=function(){if(Q.dataset.lock)return;Q.dataset.lock=1;tot++;if(x===e){sc++;b.className='ok';}else{b.className='no';[].forEach.call(Q.children,function(c){if(c.textContent===e.s)c.className='ok';});}
+    if(sc>best){best=sc;Horo.save('best',best);}$('qs').textContent=L('Верно: ','Correct: ')+sc+' / '+tot+' · '+L('рекорд ','best ')+best;setTimeout(function(){delete Q.dataset.lock;quiz();},900);};Q.append(b);});}
+function mode(m){$('mt').classList.toggle('on',m==='t');$('mq').classList.toggle('on',m==='q');$('tb').hidden=$('leg').hidden=$('q').hidden=m==='q';$('quiz').hidden=m!=='q';if(m==='q'){sc=0;tot=0;$('qs').textContent='';quiz();}}
+$('mt').textContent=L('Таблица','Table');$('mq').textContent=L('Викторина','Quiz');$('q').placeholder=L('Поиск: Fe, железо, 26','Search: Fe, iron, 26');
+$('mt').onclick=function(){mode('t');};$('mq').onclick=function(){mode('q');};$('q').oninput=draw;
+Horo.load('best').then(function(b){best=b||0;});leg();draw();
+</script>

@@ -1,0 +1,27 @@
+<div id="z" class="z idle"><b id="t"></b><span id="s"></span></div>
+<div class="row res"><div><b id="avg">—</b><small id="al"></small></div><div><b id="best">—</b><small id="bl"></small></div></div>
+<style>
+body{padding:12px}
+.z{height:min(62vh,460px);border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;cursor:pointer;user-select:none;transition:background .15s;text-align:center;padding:20px}
+.z b{font-size:44px;font-weight:800}.z span{font-size:18px;opacity:.9;margin-top:8px}
+.idle{background:linear-gradient(135deg,#0A84FF,#5E5CE6)}.wait{background:#FF453A}.go{background:#30D158}.early{background:#FF9F0A}.done{background:linear-gradient(135deg,#5E5CE6,#BF5AF2)}
+.res{justify-content:space-around;margin-top:14px;text-align:center}
+.res b{display:block;font-size:30px}.res small{color:var(--mut)}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},st='idle',t0=0,to=0,R=[],best=0;
+$('al').textContent=L('среднее за 5','average of 5');$('bl').textContent=L('рекорд','best');
+function set(c,a,b){st=c;$('z').className='z '+c;$('t').textContent=a;$('s').textContent=b||'';}
+function idle(){set('idle',L('Тест реакции','Reaction test'),L('Нажми, когда фон станет зелёным. Нажми, чтобы начать.','Tap when the screen turns green. Tap to start.'));}
+function arm(){set('wait',L('Жди…','Wait…'),L('Ещё не зелёный','Not green yet'));to=setTimeout(function(){set('go',L('Жми!','Tap!'));t0=performance.now();},1200+Math.random()*2800);}
+$('z').addEventListener('pointerdown',function(){
+  if(st==='idle'||st==='done'){R=st==='done'?[]:R;arm();}
+  else if(st==='wait'){clearTimeout(to);set('early',L('Рано!','Too soon!'),L('Нажми, чтобы попробовать снова','Tap to try again'));st='idle2';}
+  else if(st==='idle2'||st==='early'){arm();}
+  else if(st==='go'){var ms=Math.round(performance.now()-t0);R.push(ms);
+    if(R.length<5){set('idle2',ms+' '+L('мс','ms'),L('Попытка ','Try ')+R.length+L(' из 5. Нажми, чтобы продолжить',' of 5. Tap to continue'));}
+    else{var a=Math.round(R.reduce(function(x,y){return x+y;},0)/5);$('avg').textContent=a+' '+L('мс','ms');if(!best||a<best){best=a;Horo.save('best',best);$('best').textContent=best+' '+L('мс','ms');}
+      set('done',a+' '+L('мс','ms'),(a<220?L('Молниеносно! ⚡','Lightning fast! ⚡'):a<300?L('Отличная реакция','Great reaction'):L('Неплохо, можно быстрее','Not bad, you can be faster'))+' · '+L('нажми, чтобы ещё раз','tap to go again'));R=[];}}
+});
+Horo.load('best').then(function(b){best=b||0;if(best)$('best').textContent=best+' '+L('мс','ms');idle();});
+</script>

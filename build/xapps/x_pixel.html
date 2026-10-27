@@ -1,0 +1,41 @@
+<div class="top row"><select id="sz"><option value="16">16×16</option><option value="24">24×24</option><option value="32">32×32</option></select>
+  <button id="pen" class="on">✏️</button><button id="er">🧽</button><button id="fl">🪣</button><button id="pk">💧</button><button id="un">↩</button><button id="gr">#</button><button id="cl">🗑</button></div>
+<div id="cv"></div>
+<div class="pal" id="pal"></div>
+<div class="row cc"><input type="color" id="cc" value="#FF2D55"><button class="p" id="save"></button></div>
+<style>
+.top{justify-content:center;margin-bottom:10px}
+.top button{padding:8px 11px;font-size:18px}.top button.on{background:var(--acc);color:#fff}
+#cv{display:grid;width:min(440px,94vw);aspect-ratio:1;margin:0 auto;background-color:#fff;background-image:linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%),linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%);background-size:16px 16px;background-position:0 0,8px 8px;border-radius:10px;overflow:hidden;touch-action:none;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+#cv.grid i{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12)}
+#cv i{display:block}
+.pal{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px auto;max-width:440px}
+.pal button{width:32px;height:32px;padding:0;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.pal button.on{outline:3px solid var(--acc);outline-offset:2px}
+.cc{justify-content:center}
+#cc{width:52px;height:42px;padding:0;border:0;background:none}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},N=16,P=[],col='#FF2D55',tool='pen',down=false,hist=[];
+var PAL=['#000000','#FFFFFF','#8E8E93','#FF3B30','#FF9500','#FFCC00','#34C759','#00C7BE','#007AFF','#5856D6','#AF52DE','#FF2D55','#A2845E','#FFD1DC','#B5EAD7','#1C1C3A'];
+$('save').textContent=L('🌸 Сохранить в Фото','🌸 Save to Photos');
+function grid(){var c=$('cv');c.textContent='';c.style.gridTemplateColumns='repeat('+N+',1fr)';for(var i=0;i<N*N;i++){var d=document.createElement('i');d.style.background=P[i]||'transparent';c.append(d);}}
+function pal(){var p=$('pal');p.textContent='';PAL.forEach(function(c){var b=document.createElement('button');b.style.background=c;if(c===col)b.className='on';b.onclick=function(){col=c;$('cc').value=c;if(tool!=='pen')setTool('pen');pal();};p.append(b);});}
+function setTool(t){tool=t;['pen','er','fl','pk'].forEach(function(k){$(k).classList.toggle('on',{pen:'pen',er:'er',fl:'fl',pk:'pk'}[k]===t);});}
+function idx(e){var r=$('cv').getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*N),y=Math.floor((e.clientY-r.top)/r.height*N);return x<0||y<0||x>=N||y>=N?-1:y*N+x;}
+function set(i,v){if(i<0||P[i]===v)return;P[i]=v;$('cv').children[i].style.background=v||'transparent';}
+function flood(i,v){var t=P[i]||'';if(t===(v||''))return;var st=[i];while(st.length){var k=st.pop();if((P[k]||'')!==t)continue;set(k,v);var x=k%N,y=k/N|0;if(x>0)st.push(k-1);if(x<N-1)st.push(k+1);if(y>0)st.push(k-N);if(y<N-1)st.push(k+N);}}
+function apply(e){var i=idx(e);if(i<0)return;if(tool==='pen')set(i,col);else if(tool==='er')set(i,'');else if(tool==='fl'){flood(i,col);down=false;}else if(tool==='pk'){if(P[i]){col=P[i];$('cc').value=col;pal();}setTool('pen');down=false;}}
+function save(){Horo.save('p',{N:N,P:P});}
+$('cv').addEventListener('pointerdown',function(e){e.preventDefault();hist.push(P.slice());if(hist.length>40)hist.shift();down=true;apply(e);});
+$('cv').addEventListener('pointermove',function(e){if(down)apply(e);});
+addEventListener('pointerup',function(){if(down){down=false;save();}else save();});
+$('pen').onclick=function(){setTool('pen');};$('er').onclick=function(){setTool('er');};$('fl').onclick=function(){setTool('fl');};$('pk').onclick=function(){setTool('pk');};
+$('un').onclick=function(){var h=hist.pop();if(h){P=h;grid();save();}};
+$('gr').onclick=function(){$('cv').classList.toggle('grid');};
+$('cl').onclick=function(){hist.push(P.slice());P=[];grid();save();};
+$('sz').onchange=function(){N=+this.value;P=[];hist=[];grid();save();};
+$('cc').oninput=function(){col=this.value;pal();};
+$('save').onclick=function(){var s=Math.max(8,Math.floor(512/N)),c=document.createElement('canvas');c.width=c.height=N*s;var g=c.getContext('2d');P.forEach(function(v,i){if(v){g.fillStyle=v;g.fillRect((i%N)*s,(i/N|0)*s,s,s);}});Horo.photo(c.toDataURL('image/png'));};
+Horo.load('p').then(function(d){if(d&&d.N){N=d.N;P=d.P||[];$('sz').value=N;}$('cv').classList.add('grid');grid();pal();});
+</script>

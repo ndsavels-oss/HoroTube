@@ -1,0 +1,40 @@
+<h1 id="h"></h1>
+<div class="row add"><input id="n" maxlength="40"><select id="e"></select><button class="p" id="a">＋</button></div>
+<div id="list"></div>
+<p class="mut c" id="empty"></p>
+<style>
+.add input{flex:1;min-width:140px}
+.add select{width:70px;font-size:20px}
+.hb{background:var(--card);border-radius:18px;padding:12px 14px;margin-bottom:10px;animation:in .35s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+.top{display:flex;align-items:center;gap:10px}
+.top b{flex:1;font-size:17px}
+.top .em{font-size:26px}
+.top small{color:#FF9500;font-weight:700}
+.top button{background:none;color:var(--mut);padding:4px 8px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.days button{padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;background:var(--bg);color:var(--mut)}
+.days button i{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);font-style:normal;display:flex;align-items:center;justify-content:center;color:#fff;transition:background .2s,transform .2s}
+.days button.on i{background:#30D158;border-color:#30D158;transform:scale(1.08)}
+.days button.today{color:var(--ink);font-weight:700}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},H=[];
+var EM=['💧','📚','🏃','🧘','🎹','🥦','😴','🦷','✍️','🧹','🌱','⚽'];
+$('h').textContent=L('Привычки','Habits');$('n').placeholder=L('Новая привычка: пить воду, читать…','New habit: drink water, read…');$('empty').textContent=L('Добавь привычку и отмечай каждый день. Серия растёт, пока не пропускаешь.','Add a habit and check it off every day. The streak grows as long as you keep going.');
+EM.forEach(function(x){var o=document.createElement('option');o.textContent=x;$('e').append(o);});
+function key(d){return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function streak(h){var n=0,d=new Date();if(!h.done[key(d)])d.setDate(d.getDate()-1);while(h.done[key(d)]){n++;d.setDate(d.getDate()-1);}return n;}
+function save(){Horo.save('h',H);}
+function draw(){var l=$('list');l.textContent='';$('empty').style.display=H.length?'none':'';
+  var WD=HL==='en'?['Su','Mo','Tu','We','Th','Fr','Sa']:['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  H.forEach(function(h,i){var c=document.createElement('div');c.className='hb';var t=document.createElement('div');t.className='top';
+    var em=document.createElement('span');em.className='em';em.textContent=h.e;var b=document.createElement('b');b.textContent=h.n;var s=document.createElement('small');var k=streak(h);s.textContent=k?'🔥 '+k:'';
+    var x=document.createElement('button');x.textContent='✕';x.onclick=function(){if(confirm())H.splice(i,1);save();draw();};t.append(em,b,s,x);c.append(t);
+    var ds=document.createElement('div');ds.className='days';
+    for(var j=6;j>=0;j--){(function(j){var d=new Date();d.setDate(d.getDate()-j);var kk=key(d),bt=document.createElement('button');bt.className=(h.done[kk]?'on':'')+(j===0?' today':'');var ii=document.createElement('i');ii.textContent=h.done[kk]?'✓':'';bt.append(ii,document.createTextNode(WD[d.getDay()]));bt.onclick=function(){if(h.done[kk])delete h.done[kk];else h.done[kk]=1;save();draw();};ds.append(bt);})(j);}
+    c.append(ds);l.append(c);});}
+$('a').onclick=function(){var n=$('n').value.trim();if(!n)return;H.push({n:n,e:$('e').value,done:{}});$('n').value='';save();draw();};
+$('n').onkeydown=function(e){if(e.key==='Enter')$('a').click();};
+Horo.load('h').then(function(h){if(Array.isArray(h))H=h;draw();});
+</script>

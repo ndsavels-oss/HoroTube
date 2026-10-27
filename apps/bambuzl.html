@@ -1,0 +1,318 @@
+<!-- Бамбузл: командная викторина для класса (как Baamboozle).
+     Вставь весь код в Студию кода → «Запустить». Игра идёт на одном экране: учитель или ведущий жмёт кнопки. -->
+<div id="home" class="scr">
+  <header class="hero"><div class="logo">🎯</div><div><h1>Бамбузл</h1><p>Командная викторина для класса</p></div></header>
+  <div class="row"><button id="newGame" class="btn main">＋ Новая игра</button></div>
+  <div id="games" class="games"></div>
+</div>
+
+<div id="editor" class="scr" hidden>
+  <div class="top"><button id="edBack" class="btn ghost sm">‹ Назад</button><b>Редактор игры</b><button id="edDel" class="btn ghost sm red">Удалить</button></div>
+  <input id="edTitle" class="inp big" placeholder="Название игры" maxlength="40">
+  <div id="edList" class="edlist"></div>
+  <div class="card">
+    <input id="edQ" class="inp" placeholder="Вопрос" maxlength="200">
+    <input id="edA" class="inp" placeholder="Ответ (увидит только ведущий)" maxlength="100">
+    <button id="edAdd" class="btn main">Добавить вопрос</button>
+  </div>
+  <details class="card"><summary>Добавить много сразу</summary>
+    <p class="mut">Каждый вопрос с новой строки, ответ после черты: <code>Столица Латвии? | Рига</code></p>
+    <textarea id="edBulk" class="inp" rows="6"></textarea>
+    <button id="edBulkAdd" class="btn">Добавить списком</button>
+  </details>
+  <p class="mut" id="edCount"></p>
+</div>
+
+<div id="setup" class="scr" hidden>
+  <div class="top"><button id="suBack" class="btn ghost sm">‹ Назад</button><b id="suTitle"></b><span></span></div>
+  <h3>Команды</h3>
+  <div id="suTeams" class="teams-set"></div>
+  <div class="row"><button id="suMinus" class="btn ghost">− команда</button><button id="suPlus" class="btn ghost">＋ команда</button></div>
+  <h3>Настройки</h3>
+  <label class="opt"><input type="checkbox" id="suTimer" checked> Таймер 20 секунд на ответ</label>
+  <label class="opt"><input type="checkbox" id="suPower" checked> Бонус-карты: 🎁 +очки, ✨ ×2, 💣 −очки</label>
+  <label class="opt"><input type="checkbox" id="suShuffle" checked> Перемешать вопросы</label>
+  <button id="suGo" class="btn main huge">▶ Начать игру</button>
+</div>
+
+<div id="board" class="scr" hidden>
+  <div class="scores" id="scores"></div>
+  <div class="turn" id="turn"></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="row"><button id="bdEnd" class="btn ghost sm">Закончить игру</button></div>
+</div>
+
+<div id="modal" class="modal" hidden><div class="mbox" id="mbox"></div></div>
+
+<div id="final" class="scr" hidden>
+  <h1 class="center">🏆 Итоги</h1>
+  <div class="podium" id="podium"></div>
+  <div class="row"><button id="fnAgain" class="btn main">Сыграть ещё</button><button id="fnHome" class="btn ghost">Все игры</button></div>
+</div>
+<div id="confetti"></div>
+
+<style>
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; padding: 16px; font-family: -apple-system, system-ui, "Segoe UI", sans-serif; color: #1B1B3A; min-height: 100vh;
+         background: radial-gradient(circle at 20% 0%, #FFE8F3, transparent 50%), radial-gradient(circle at 90% 10%, #E3F0FF, transparent 50%), #F6F4FF; }
+  .scr { max-width: 980px; margin: 0 auto; animation: in .35s ease; }
+  @keyframes in { from { opacity: 0; transform: translateY(14px); } }
+  h1 { margin: 0; font-size: 32px; } h3 { margin: 22px 0 8px; }
+  .center { text-align: center; } .mut { color: #6E6E8F; font-size: 14px; }
+  .hero { display: flex; align-items: center; gap: 16px; margin: 6px 0 18px; }
+  .hero p { margin: 4px 0 0; color: #6E6E8F; }
+  .logo { width: 70px; height: 70px; border-radius: 22px; background: linear-gradient(140deg, #FF5FA2, #7B5CFA); display: grid; place-items: center; font-size: 38px; box-shadow: 0 10px 24px rgba(123,92,250,.35); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+  .btn { border: 0; border-radius: 14px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; background: #ECEAFE; color: #5B3FE0; transition: transform .12s; }
+  .btn:active { transform: scale(.96); }
+  .btn.main { background: linear-gradient(140deg, #7B5CFA, #5B3FE0); color: #fff; box-shadow: 0 8px 18px rgba(91,63,224,.3); }
+  .btn.ghost { background: rgba(91,63,224,.08); } .btn.sm { padding: 8px 12px; font-size: 14px; } .btn.red { color: #E5243B; }
+  .btn.huge { width: 100%; font-size: 20px; padding: 16px; margin-top: 18px; }
+  .btn.ok { background: #2FBF71; color: #fff; } .btn.no { background: #FF4D5E; color: #fff; }
+  .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .gcard { background: #fff; border-radius: 20px; padding: 16px; box-shadow: 0 4px 16px rgba(40,20,120,.08); }
+  .gcard b { font-size: 18px; display: block; margin-bottom: 4px; }
+  .gcard .row { margin: 12px 0 0; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .inp { width: 100%; border: 1px solid #DCD8F5; border-radius: 12px; padding: 12px; font: inherit; background: #fff; margin: 6px 0; }
+  .inp.big { font-size: 20px; font-weight: 700; }
+  .card { background: #fff; border-radius: 18px; padding: 14px; margin: 12px 0; box-shadow: 0 2px 10px rgba(40,20,120,.06); }
+  summary { font-weight: 700; cursor: pointer; }
+  .edlist { display: grid; gap: 8px; margin: 10px 0; }
+  .edq { background: #fff; border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; }
+  .edq span { flex: 1; } .edq small { color: #2FBF71; font-weight: 700; } .edq button { border: 0; background: none; color: #E5243B; font-size: 18px; cursor: pointer; }
+  .teams-set { display: grid; gap: 8px; }
+  .tset { display: flex; gap: 8px; align-items: center; } .tset i { width: 28px; height: 28px; border-radius: 50%; flex: none; }
+  .opt { display: flex; gap: 10px; align-items: center; background: #fff; border-radius: 12px; padding: 12px; margin: 6px 0; cursor: pointer; }
+  .opt input { width: 20px; height: 20px; }
+  .scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .team { border-radius: 18px; padding: 10px 14px; color: #fff; position: relative; transition: transform .3s, box-shadow .3s; opacity: .8; }
+  .team.cur { transform: scale(1.06); box-shadow: 0 10px 24px rgba(0,0,0,.25); opacity: 1; }
+  .team small { display: block; font-weight: 600; opacity: .9; } .team b { font-size: 30px; }
+  .team .bump { position: absolute; right: 10px; top: 6px; font-weight: 800; animation: bump 1.2s ease forwards; }
+  @keyframes bump { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-30px); } }
+  .turn { text-align: center; font-weight: 700; margin: 14px 0; color: #5B3FE0; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; perspective: 900px; }
+  .tile { aspect-ratio: 1; border: 0; border-radius: 20px; font-family: inherit; font-weight: 800; font-size: 38px; line-height: 1; color: #fff; cursor: pointer; box-shadow: 0 8px 18px rgba(40,20,120,.18); transition: transform .5s, opacity .4s; }
+  .tile:hover { transform: translateY(-4px) rotate(-2deg); }
+  .tile.used { opacity: .18; pointer-events: none; transform: rotateY(180deg); }
+  .modal { position: fixed; inset: 0; background: rgba(20,10,60,.55); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 5; animation: fade .2s; }
+  @keyframes fade { from { opacity: 0; } }
+  .mbox { background: #fff; border-radius: 28px; padding: 26px; width: min(640px, 100%); text-align: center; animation: flip .5s cubic-bezier(.2,1.2,.3,1); }
+  @keyframes flip { from { transform: rotateY(90deg) scale(.7); opacity: 0; } }
+  .mbox .pts { display: inline-block; background: #FFD84D; color: #5A3E00; border-radius: 20px; padding: 4px 14px; font-weight: 800; }
+  .mbox h2 { font-size: 28px; line-height: 1.3; margin: 18px 0; }
+  .mbox .ans { font-size: 24px; font-weight: 800; color: #2FBF71; margin: 10px 0; animation: in .3s; }
+  .mbox .row { justify-content: center; }
+  .clock { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 22px; background: conic-gradient(#7B5CFA var(--p), #ECEAFE 0); }
+  .clock.low { background: conic-gradient(#FF4D5E var(--p), #FFE3E6 0); animation: pulse .5s infinite alternate; }
+  @keyframes pulse { to { transform: scale(1.08); } }
+  .power { font-size: 90px; animation: spin .8s cubic-bezier(.2,1.4,.4,1); } @keyframes spin { from { transform: rotate(-200deg) scale(0); } }
+  .pick { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .podium { display: flex; justify-content: center; align-items: flex-end; gap: 14px; margin: 30px 0; min-height: 260px; }
+  .pod { width: 130px; border-radius: 18px 18px 0 0; color: #fff; text-align: center; padding: 12px 6px; animation: rise .8s cubic-bezier(.2,1.2,.3,1) backwards; }
+  @keyframes rise { from { transform: scaleY(0); transform-origin: bottom; } }
+  .pod b { display: block; font-size: 28px; } .pod span { font-size: 34px; }
+  #confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 9; }
+  #confetti i { position: absolute; top: -20px; width: 10px; height: 14px; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  @media (max-width: 560px) { .tile { font-size: 26px; } .mbox h2 { font-size: 22px; } .pod { width: 90px; } }
+</style>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const COLORS = ['#FF5FA2', '#3D8BFF', '#2FBF71', '#FF9F1C', '#9B5CFA', '#14B8C4'];
+  const TILE_BG = ['#7B5CFA', '#FF5FA2', '#3D8BFF', '#FF9F1C', '#2FBF71', '#14B8C4'];
+  /* бонус-карты: дают очки, удваивают или отнимают. vals — возможные числа на карточке */
+  const POWERS = {
+    plus:  { icon: '🎁', w: 4, vals: [5, 10, 15, 20] },
+    x2:    { icon: '✨', w: 2 },
+    minus: { icon: '💣', w: 3, vals: [5, 10, 15] }
+  };
+  const powName = (k, v) => k === 'plus' ? '+' + v + ' очков!' : k === 'minus' ? 'Ой! −' + v + ' очков' : '×2! Очки удваиваются';
+  const DEMO = [
+    { id: 'demo1', title: 'Обо всём понемногу', qs: [
+      ['Сколько дней в високосном году?', '366'], ['Столица Латвии?', 'Рига'], ['Самая большая планета?', 'Юпитер'],
+      ['Сколько ног у паука?', '8'], ['7 × 8 = ?', '56'], ['Как по-английски «кошка»?', 'cat'],
+      ['Кто написал «Сказку о рыбаке и рыбке»?', 'Пушкин'], ['Самый большой океан?', 'Тихий'], ['При какой температуре замерзает вода?', '0 °C'],
+      ['Сколько сторон у шестиугольника?', '6'], ['Какого цвета смешение синего и жёлтого?', 'Зелёный'], ['Самое быстрое наземное животное?', 'Гепард'] ] },
+    { id: 'demo2', title: 'English: Animals', qs: [
+      ['«Собака» по-английски?', 'dog'], ['«Лошадь» по-английски?', 'horse'], ['«Mouse» — это…', 'мышь'], ['«Медведь» по-английски?', 'bear'],
+      ['«Bird» — это…', 'птица'], ['«Корова» по-английски?', 'cow'], ['«Rabbit» — это…', 'кролик'], ['Множественное число «mouse»?', 'mice'],
+      ['«Лиса» по-английски?', 'fox'], ['«Frog» — это…', 'лягушка'] ] }
+  ];
+  let games = [], edit = null, G = null, nTeams = 2, teamNames = [];
+
+  const show = id => ['home', 'editor', 'setup', 'board', 'final'].forEach(s => $(s).hidden = s !== id);
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const save = () => { const s = JSON.stringify(games); if (s.length > 45000) { Horo.toast('Слишком много вопросов: удали старые игры'); return; } Horo.save('games', games); };
+
+  /* ---------- список игр ---------- */
+  function drawHome() {
+    const g = $('games'); g.textContent = '';
+    [...games, ...DEMO].forEach(gm => {
+      const c = mk('div', 'gcard'); c.append(mk('b', null, gm.title), mk('span', 'mut', gm.qs.length + ' вопросов' + (gm.id.startsWith('demo') ? ' · пример' : '')));
+      const r = mk('div', 'row'), play = mk('button', 'btn main sm', '▶ Играть');
+      play.onclick = () => { if (gm.qs.length < 4) { Horo.toast('Нужно хотя бы 4 вопроса'); return; } openSetup(gm); };
+      r.append(play);
+      if (!gm.id.startsWith('demo')) { const e = mk('button', 'btn ghost sm', '✏️ Изменить'); e.onclick = () => openEditor(gm); r.append(e); }
+      else { const cp = mk('button', 'btn ghost sm', '📋 Копия'); cp.onclick = () => { const n = { id: 'g' + Date.now(), title: gm.title + ' (моя)', qs: gm.qs.map(q => q.slice()) }; games.unshift(n); save(); openEditor(n); }; r.append(cp); }
+      c.append(r); g.append(c);
+    });
+    show('home');
+  }
+  $('newGame').onclick = () => { const n = { id: 'g' + Date.now(), title: 'Новая игра', qs: [] }; games.unshift(n); save(); openEditor(n); };
+
+  /* ---------- редактор ---------- */
+  function openEditor(gm) { edit = gm; $('edTitle').value = gm.title; drawEd(); show('editor'); }
+  function drawEd() {
+    const l = $('edList'); l.textContent = '';
+    edit.qs.forEach((q, i) => { const d = mk('div', 'edq'); d.append(mk('b', null, (i + 1) + '.'), mk('span', null, q[0]), mk('small', null, q[1])); const x = mk('button', null, '✕'); x.onclick = () => { edit.qs.splice(i, 1); save(); drawEd(); }; d.append(x); l.append(d); });
+    $('edCount').textContent = edit.qs.length + ' из 30 вопросов' + (edit.qs.length < 4 ? ' · для игры нужно минимум 4' : '');
+  }
+  $('edTitle').oninput = () => { edit.title = $('edTitle').value.trim() || 'Без названия'; save(); };
+  $('edAdd').onclick = () => {
+    const q = $('edQ').value.trim(), a = $('edA').value.trim();
+    if (!q || !a) { Horo.toast('Напиши вопрос и ответ'); return; }
+    if (edit.qs.length >= 30) { Horo.toast('Максимум 30 вопросов'); return; }
+    edit.qs.push([q, a]); $('edQ').value = ''; $('edA').value = ''; $('edQ').focus(); save(); drawEd();
+  };
+  $('edA').onkeydown = e => { if (e.key === 'Enter') $('edAdd').click(); };
+  $('edBulkAdd').onclick = () => {
+    let n = 0;
+    $('edBulk').value.split('\n').forEach(line => { const p = line.split('|'); if (p.length >= 2 && p[0].trim() && p[1].trim() && edit.qs.length < 30) { edit.qs.push([p[0].trim().slice(0, 200), p.slice(1).join('|').trim().slice(0, 100)]); n++; } });
+    $('edBulk').value = ''; save(); drawEd(); Horo.toast('Добавлено вопросов: ' + n);
+  };
+  $('edBack').onclick = drawHome;
+  $('edDel').onclick = () => { games = games.filter(g => g !== edit); save(); drawHome(); Horo.toast('Игра удалена'); };
+
+  /* ---------- настройка команд ---------- */
+  function openSetup(gm) { G = { game: gm }; $('suTitle').textContent = gm.title; drawTeams(); show('setup'); }
+  function drawTeams() {
+    const b = $('suTeams'); b.textContent = '';
+    for (let i = 0; i < nTeams; i++) {
+      const r = mk('div', 'tset'), dot = mk('i'); dot.style.background = COLORS[i];
+      const inp = mk('input', 'inp'); inp.maxLength = 20; inp.value = teamNames[i] || 'Команда ' + (i + 1);
+      inp.oninput = () => { teamNames[i] = inp.value; };
+      r.append(dot, inp); b.append(r);
+    }
+  }
+  $('suPlus').onclick = () => { if (nTeams < 6) { nTeams++; drawTeams(); } };
+  $('suMinus').onclick = () => { if (nTeams > 2) { nTeams--; drawTeams(); } };
+  $('suBack').onclick = drawHome;
+  $('suGo').onclick = () => {
+    const qs = G.game.qs.map(q => ({ type: 'q', q: q[0], a: q[1], pts: [5, 10, 10, 15, 20, 25][Math.floor(Math.random() * 6)] }));
+    if ($('suShuffle').checked) shuffle(qs);
+    let tiles = qs;
+    if ($('suPower').checked) {
+      // немного карточек: примерно одна на 6 вопросов (от 2 до 5), каждый вид хотя бы по разу
+      const n = Math.min(5, Math.max(2, Math.round(qs.length / 6))), bag = [];
+      Object.entries(POWERS).forEach(([k, p]) => { for (let i = 0; i < p.w; i++) bag.push(k); });
+      const kinds = shuffle(Object.keys(POWERS).slice());
+      for (let i = 0; i < n; i++) {
+        const k = i < kinds.length ? kinds[i] : bag[Math.floor(Math.random() * bag.length)], vals = POWERS[k].vals;
+        tiles.splice(Math.floor(Math.random() * (tiles.length + 1)), 0, { type: 'p', p: k, v: vals ? vals[Math.floor(Math.random() * vals.length)] : 0 });
+      }
+    }
+    G.tiles = tiles.slice(0, 36); G.used = 0; G.cur = 0; G.timer = $('suTimer').checked;
+    G.teams = Array.from({ length: nTeams }, (_, i) => ({ name: (teamNames[i] || 'Команда ' + (i + 1)).trim() || 'Команда ' + (i + 1), col: COLORS[i], score: 0 }));
+    drawBoard(); show('board');
+  };
+
+  /* ---------- поле ---------- */
+  function drawScores(bumpIdx, bumpVal) {
+    const s = $('scores'); s.textContent = '';
+    G.teams.forEach((t, i) => {
+      const d = mk('div', 'team' + (i === G.cur ? ' cur' : '')); d.style.background = `linear-gradient(140deg, ${t.col}, ${t.col}cc)`;
+      d.append(mk('small', null, t.name), mk('b', null, String(t.score)));
+      if (i === bumpIdx && bumpVal) d.append(mk('span', 'bump', (bumpVal > 0 ? '+' : '') + bumpVal));
+      s.append(d);
+    });
+    $('turn').textContent = 'Ход: ' + G.teams[G.cur].name + ' — выбери плитку';
+  }
+  function drawBoard() {
+    drawScores();
+    const t = $('tiles'); t.textContent = '';
+    G.tiles.forEach((tile, i) => {
+      const b = mk('button', 'tile' + (tile.done ? ' used' : ''), String(i + 1));
+      b.style.background = `linear-gradient(150deg, ${TILE_BG[i % TILE_BG.length]}, ${TILE_BG[(i + 2) % TILE_BG.length]})`;
+      b.onclick = () => openTile(i, b); t.append(b);
+    });
+  }
+  function addScore(i, v) { G.teams[i].score += v; drawScores(i, v); }
+  function nextTurn() { G.cur = (G.cur + 1) % G.teams.length; drawScores(); }
+  function closeTile(i) {
+    G.tiles[i].done = true; G.used++; $('modal').hidden = true; clearInterval(G.tm);
+    const b = $('tiles').children[i]; if (b) b.classList.add('used');
+    if (G.used >= G.tiles.length) setTimeout(finish, 700);
+  }
+  // начислить очки (можно минус) и, если нужно, передать ход — одной перерисовкой, чтобы была видна анимация
+  function score(who, v, pass) { G.teams[who].score = Math.max(0, G.teams[who].score + v); if (pass) G.cur = (G.cur + 1) % G.teams.length; drawScores(who, v); }
+
+  function openTile(i) {
+    const tile = G.tiles[i], box = $('mbox'); box.textContent = ''; $('modal').hidden = false;
+    const team = G.teams[G.cur];
+    if (tile.type === 'p') return openPower(i, tile.p, tile.v);
+    box.append(mk('span', 'pts', tile.pts + ' очков'), mk('h2', null, tile.q));
+    let clock = null;
+    if (G.timer) {
+      clock = mk('div', 'clock'); box.append(clock); let left = 20;
+      const tick = () => { clock.textContent = left > 0 ? left : '⏰'; clock.style.setProperty('--p', (left / 20 * 100) + '%'); clock.classList.toggle('low', left <= 5); };
+      tick(); G.tm = setInterval(() => { left--; tick(); if (left <= 0) { clearInterval(G.tm); Horo.toast('Время вышло!'); } }, 1000);
+    }
+    const ans = mk('div', 'ans'); ans.hidden = true; ans.textContent = '✓ ' + tile.a; box.append(ans);
+    const r = mk('div', 'row'), showA = mk('button', 'btn ghost', '👁 Показать ответ');
+    showA.onclick = () => { ans.hidden = false; showA.remove(); clearInterval(G.tm); };
+    const ok = mk('button', 'btn ok', '✓ Верно'), no = mk('button', 'btn no', '✗ Неверно');
+    ok.onclick = () => { const w = G.cur; closeTile(i); score(w, tile.pts, true); };
+    no.onclick = () => { closeTile(i); nextTurn(); };
+    r.append(showA, ok, no); box.append(mk('p', 'mut', 'Отвечает: ' + team.name), r);
+  }
+
+  function openPower(i, k, v) {
+    const p = POWERS[k], box = $('mbox'), me = G.cur, team = G.teams[me];
+    box.append(mk('div', 'power', p.icon), mk('h2', null, powName(k, v)), mk('p', 'mut', 'Бонус-карта для команды «' + team.name + '»'));
+    if (k === 'x2') box.append(mk('p', null, team.score ? team.score + ' × 2 = ' + team.score * 2 : 'Пока 0 очков, а 0 × 2 = 0 😅'));
+    if (k === 'minus' && team.score < v) box.append(mk('p', null, 'Ниже нуля не бывает: останется 0'));
+    const b = mk('button', 'btn main', 'Ок');
+    b.onclick = () => { closeTile(i);
+      if (k === 'plus') score(me, v, true);
+      else if (k === 'minus') score(me, -Math.min(v, team.score), true);
+      else score(me, team.score, true);
+    };
+    const r = mk('div', 'row'); r.append(b); box.append(r);
+  }
+
+  /* ---------- итоги ---------- */
+  function finish() {
+    $('modal').hidden = true; clearInterval(G.tm);
+    const order = G.teams.map((t, i) => ({ ...t, i })).sort((a, b) => b.score - a.score);
+    const pd = $('podium'); pd.textContent = '';
+    const place = [1, 0, 2].filter(n => order[n]);  // второе, первое, третье место
+    const H = [240, 180, 130], M = ['🥇', '🥈', '🥉'];
+    place.forEach((n, k) => {
+      const t = order[n], d = mk('div', 'pod'); d.style.background = `linear-gradient(180deg, ${t.col}, ${t.col}aa)`;
+      d.style.height = H[n] + 'px'; d.style.animationDelay = (k * 0.15) + 's';
+      d.append(mk('span', null, M[n]), mk('b', null, String(t.score)), mk('small', null, t.name)); pd.append(d);
+    });
+    order.slice(3).forEach(t => pd.append(mk('p', 'mut', t.name + ': ' + t.score)));
+    show('final'); confetti();
+    const best = order[0]; if (order[1] && order[1].score === best.score) Horo.toast('Ничья!'); else Horo.toast('🏆 Победила команда «' + best.name + '»');
+  }
+  function confetti() {
+    const c = $('confetti'); c.textContent = '';
+    for (let i = 0; i < 90; i++) {
+      const p = mk('i'); p.style.left = Math.random() * 100 + '%'; p.style.background = COLORS[i % COLORS.length];
+      p.style.animationDuration = (2 + Math.random() * 2.5) + 's'; p.style.animationDelay = Math.random() * .8 + 's';
+      p.style.borderRadius = Math.random() < .5 ? '50%' : '2px'; c.append(p);
+    }
+    setTimeout(() => { c.textContent = ''; }, 5500);
+  }
+  $('bdEnd').onclick = finish;
+  $('fnAgain').onclick = () => openSetup(G.game);
+  $('fnHome').onclick = drawHome;
+
+  Horo.load('games').then(g => { games = Array.isArray(g) ? g : []; drawHome(); });
+</script>

@@ -1,0 +1,66 @@
+<div class="c">
+  <div class="seg" id="tabs"></div>
+  <div id="p-dice" class="pn">
+    <div class="dice" id="dice"></div>
+    <div class="row cc"><span class="mut" id="dl"></span><button data-n="1">1</button><button data-n="2" class="on">2</button><button data-n="3">3</button></div>
+    <p class="sum" id="sum"></p>
+    <button class="p big" id="roll"></button>
+  </div>
+  <div id="p-coin" class="pn" hidden>
+    <div class="coin" id="coin"><div class="f">🦅</div><div class="r">1</div></div>
+    <p class="sum" id="cr"></p>
+    <button class="p big" id="flip"></button>
+  </div>
+  <div id="p-num" class="pn" hidden>
+    <div class="row cc"><input id="a" type="number" value="1"><span>—</span><input id="b" type="number" value="100"></div>
+    <div class="big-n" id="n">?</div>
+    <button class="p big" id="gen"></button>
+  </div>
+  <div id="p-who" class="pn" hidden>
+    <textarea id="names" rows="5"></textarea>
+    <div class="big-n small" id="who">?</div>
+    <button class="p big" id="pick"></button>
+  </div>
+</div>
+<style>
+.seg{display:inline-flex;background:var(--line);border-radius:12px;padding:3px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
+.seg button{background:none;padding:8px 12px}.seg button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.cc{justify-content:center}
+.cc button.on{background:var(--acc);color:#fff}
+.dice{display:flex;justify-content:center;gap:18px;margin:20px 0;min-height:110px}
+.die{width:96px;height:96px;border-radius:22px;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.18),inset 0 -4px 0 rgba(0,0,0,.08);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:12px;box-sizing:border-box}
+.die i{width:18px;height:18px;border-radius:50%;background:#1C1C1E;align-self:center;justify-self:center;visibility:hidden}
+.die i.v{visibility:visible}
+.die.roll{animation:roll .7s cubic-bezier(.3,1.3,.5,1)}
+@keyframes roll{0%{transform:rotate(0) scale(.6)}40%{transform:rotate(380deg) scale(1.15)}100%{transform:rotate(720deg) scale(1)}}
+.sum{font-size:22px;font-weight:700;min-height:30px}
+.big{padding:14px 40px;border-radius:30px;font-size:19px}
+.coin{width:150px;height:150px;margin:20px auto;position:relative;transform-style:preserve-3d;transition:transform 1.4s cubic-bezier(.2,.8,.3,1)}
+.coin div{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:800;color:#7A4B00;background:radial-gradient(circle at 35% 30%,#FFE58A,#E0A800 70%,#B07800);box-shadow:inset 0 0 0 8px rgba(255,255,255,.25);backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.coin .r{transform:rotateY(180deg)}
+.row input{width:110px;text-align:center;font-size:20px}
+.big-n{font-size:96px;font-weight:800;margin:20px 0;color:var(--acc)}
+.big-n.small{font-size:48px}
+.big-n.pop{animation:np .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes np{from{transform:scale(.4);opacity:0}}
+textarea{width:min(360px,90%)}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},cnt=2,rot=0;
+var TB=[['dice',L('🎲 Кубики','🎲 Dice')],['coin',L('🪙 Монетка','🪙 Coin')],['num',L('🔢 Число','🔢 Number')],['who',L('👆 Кто первый','👆 Who goes first')]];
+function tabs(k){var s=$('tabs');s.textContent='';TB.forEach(function(t){var b=document.createElement('button');b.textContent=t[1];if(t[0]===k)b.className='on';b.onclick=function(){tabs(t[0]);};s.append(b);$('p-'+t[0]).hidden=t[0]!==k;});}
+var PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function die(v){var d=document.createElement('div');d.className='die roll';for(var i=0;i<9;i++){var p=document.createElement('i');if(PIPS[v].indexOf(i)>=0)p.className='v';d.append(p);}return d;}
+function roll(){var box=$('dice'),s=0;box.textContent='';for(var i=0;i<cnt;i++){var v=1+Math.random()*6|0;s+=v;box.append(die(v));}$('sum').textContent=cnt>1?L('Сумма: ','Total: ')+s:'';}
+document.querySelectorAll('[data-n]').forEach(function(b){b.onclick=function(){cnt=+b.dataset.n;document.querySelectorAll('[data-n]').forEach(function(x){x.classList.toggle('on',x===b);});roll();};});
+$('dl').textContent=L('Кубиков:','Dice:');$('roll').textContent=L('Бросить','Roll');$('flip').textContent=L('Подбросить','Flip');$('gen').textContent=L('Случайное число','Random number');$('pick').textContent=L('Выбрать','Pick');
+$('names').placeholder=L('Имена, каждое с новой строки','Names, one per line');$('coin').querySelector('.f').textContent=L('Орёл','Heads');$('coin').querySelector('.r').textContent=L('Решка','Tails');
+$('coin').querySelectorAll('div').forEach(function(d){d.style.fontSize='28px';});
+$('roll').onclick=roll;
+var heads=true;
+$('flip').onclick=function(){var h=Math.random()<.5;rot+=1800+(h!==heads?180:0);heads=h;$('coin').style.transform='rotateY('+rot+'deg)';$('cr').textContent='';setTimeout(function(){$('cr').textContent=h?L('Орёл!','Heads!'):L('Решка!','Tails!');},1400);};
+$('gen').onclick=function(){var a=Math.ceil(+$('a').value),b=Math.floor(+$('b').value);if(b<a){var t=a;a=b;b=t;}var n=$('n');n.textContent=a+Math.floor(Math.random()*(b-a+1));n.classList.remove('pop');void n.offsetWidth;n.classList.add('pop');};
+$('pick').onclick=function(){var l=$('names').value.split('\n').map(function(s){return s.trim();}).filter(Boolean);if(!l.length){Horo.toast(L('Впиши имена','Enter some names'));return;}Horo.save('names',$('names').value);var w=$('who'),k=0,n=14;(function spin(){w.textContent=l[Math.random()*l.length|0];if(++k<n)setTimeout(spin,40+k*14);else{w.classList.remove('pop');void w.offsetWidth;w.classList.add('pop');}})();};
+Horo.load('names').then(function(v){if(v)$('names').value=v;});
+tabs('dice');roll();
+</script>

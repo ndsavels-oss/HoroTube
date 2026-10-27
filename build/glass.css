@@ -1,0 +1,68 @@
+/* --- капсулы боковых иконок (компьютер и планшет) --- */
+html:not(.phone) .side{left:12px;top:96px;width:auto;gap:12px;align-items:flex-start}
+html:not(.phone) .sgrp{display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:30px;background:var(--white);box-shadow:0 6px 24px rgba(11,15,24,.10)}
+html:not(.phone) .side a{position:relative;width:48px;height:48px;padding:0;justify-content:center;border-radius:50%;gap:0}
+html:not(.phone) .side a span{position:absolute;left:58px;top:50%;transform:translate(-6px,-50%) scale(.9);opacity:0;pointer-events:none;white-space:nowrap;background:var(--ink);color:var(--white);font-size:13px;padding:6px 10px;border-radius:10px;transition:opacity .15s,transform .2s cubic-bezier(.2,.9,.3,1.3);z-index:3}
+html:not(.phone) .side a:hover span,html:not(.phone) .side a:focus-visible span{opacity:1;transform:translate(0,-50%) scale(1)}
+html:not(.phone) .side a span b{color:inherit}
+html:not(.phone) .side .adlink{margin-top:0}
+html:not(.phone) .side em{font-size:22px;transition:transform .25s cubic-bezier(.2,.9,.3,1.4)}
+html:not(.phone) .side a:hover em{transform:scale(1.28)}
+html:not(.phone) .side a:has(+ a:hover) em,html:not(.phone) .side a:hover + a em{transform:scale(1.12)}/* «лупа» как в доке */
+html:not(.phone) .side a.on{background:color-mix(in srgb,var(--blue) 16%,transparent);box-shadow:none}
+html:not(.phone) .main{margin-left:84px}
+/* нижняя панель на телефоне — плавающая капсула */
+html.phone .tabbar{left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));padding:6px 4px;border-radius:30px;box-shadow:0 8px 30px rgba(11,15,24,.18)}
+html.phone body{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+html.phone .side{bottom:calc(88px + env(safe-area-inset-bottom))}
+html.phone .side .sgrp{display:contents}
+/* --- чаты на весь экран --- */
+.edgezone{display:none}
+html.chatfull .top,html.chatfull .tabbar,html.chatfull #langSw,html.chatfull #p-msg>.title,html.chatfull #p-msg>.chips{display:none!important}
+html.chatfull .tg{position:fixed;inset:0;height:auto;min-height:0;border-radius:0;z-index:30;grid-template-columns:360px 1fr;box-shadow:none}
+html.chatfull body{padding-bottom:0;overflow:hidden}
+html.chatfull .edgezone{display:block;position:fixed;left:0;top:0;bottom:0;width:14px;z-index:47;cursor:e-resize}
+html.chatfull .edgezone::after{content:"";position:absolute;left:3px;top:50%;width:4px;height:44px;margin-top:-22px;border-radius:4px;background:var(--text2);opacity:.25;transition:opacity .2s}
+html.chatfull .edgezone:hover::after{opacity:.6}
+.tgtop{display:flex;align-items:center;gap:8px;padding:10px 12px 0}.tgtop>b{font-size:20px;flex:1}
+.tgburger{border:0;background:none;color:var(--ink);font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer}.tgburger:hover{background:var(--bg)}
+.tgseg{display:flex;gap:4px}.tgseg button{border:0;background:var(--bg);width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;transition:transform .15s}.tgseg button:hover{transform:scale(1.1)}
+/* шторка меню в полноэкранных чатах */
+html.chatfull .side,html.phone.chatfull .side{position:fixed;left:0;top:0;bottom:0;right:auto;width:270px;max-height:none;display:flex;flex-direction:column;gap:10px;padding:calc(16px + env(safe-area-inset-top)) 12px 16px;border-radius:0 24px 24px 0;background:var(--white);z-index:49;
+  transform:translateX(-105%);opacity:1;pointer-events:none;transition:transform .32s cubic-bezier(.2,.9,.3,1);overflow-y:auto;box-shadow:8px 0 40px rgba(11,15,24,.25)}
+html.chatfull.drawer .side{transform:none;pointer-events:auto}
+html.chatfull .side .sgrp{display:flex;flex-direction:column;gap:2px;padding:4px;border-radius:18px;background:var(--bg);box-shadow:none}
+html.chatfull .side a{width:auto;height:auto;padding:11px 12px;border-radius:12px;justify-content:flex-start;gap:12px}
+html.chatfull .side a span{position:static;opacity:1;transform:none;background:none;color:inherit;font-size:15px;padding:0;display:inline}
+html.chatfull .sideshade{display:block;position:fixed;inset:0;background:rgba(11,15,24,.35);z-index:48;opacity:0;pointer-events:none;transition:opacity .25s}
+html.chatfull.drawer .sideshade{opacity:1;pointer-events:auto}
+/* каналы в чатах */
+.tgpost{width:min(92%,420px);max-width:none;padding:6px;cursor:pointer;transition:transform .15s}.tgpost:hover{transform:translateY(-2px)}
+.tgthumb{aspect-ratio:16/9;border-radius:10px;background-size:cover;background-position:center;display:grid;place-items:center;margin-bottom:6px}
+.tgthumb span{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.45);color:#fff;font-size:20px;backdrop-filter:blur(6px)}
+.tgpost>b{display:block;padding:0 4px;line-height:1.3}.tgpost .tgt{float:none;display:block;text-align:right;margin:4px 4px 0}
+.tgunread{background:var(--blue)!important}
+.tgchbar{justify-content:center;align-items:center;gap:10px;padding:10px}.tgchbtn{flex:1;max-width:260px;border:0;border-radius:22px;padding:12px;background:var(--blue);color:#fff;font:inherit;font-weight:800;cursor:pointer}.tgchbtn.tgunsub{border:1px solid color-mix(in srgb,var(--ink) 15%,transparent);background:var(--bg);color:var(--ink)}
+/* --- режим «жидкого стекла» --- */
+html.glass:not([data-theme="space"]):not([data-theme="ocean"]):not([data-theme="sunset"]) body::after{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:radial-gradient(40vw 40vw at 8% 12%,color-mix(in srgb,var(--blue) 26%,transparent),transparent 70%),radial-gradient(45vw 45vw at 92% 20%,rgba(255,79,216,.16),transparent 70%),radial-gradient(50vw 40vw at 60% 100%,rgba(56,182,255,.22),transparent 70%)}
+@supports ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  html.glass{--glass:color-mix(in srgb,var(--white) 58%,transparent);--glassline:rgba(255,255,255,.55)}
+  html.glass[data-theme="dark"],html.glass[data-theme="space"]{--glass:color-mix(in srgb,var(--white) 55%,transparent);--glassline:rgba(255,255,255,.10)}
+  html.glass .top,html.glass .sgrp,html.glass .tabbar,html.glass .pmenu,html.glass .mdl,html.glass .frcard,html.glass .tghead,html.glass .tgin,html.glass .tgl,html.glass.chatfull .side,html.glass.phone .side,html.glass .tgdd,html.glass .lock,html.glass .chip:not(.on),html.glass .tab:not(.on){
+    background:var(--glass)!important;-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
+    border:1px solid var(--glassline);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 8px 30px rgba(11,15,24,.10)}
+  html.glass .tgin,html.glass .tghead,html.glass .tgl{border-width:0;box-shadow:none}
+  html.glass .ovl{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  html.glass .tgb:not(.own){background:color-mix(in srgb,var(--white) 80%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  html.glass .card .thumb,html.glass .short{box-shadow:0 8px 24px rgba(11,15,24,.12)}
+  html.glass .tbb.tbup em{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 16px color-mix(in srgb,var(--blue) 45%,transparent)}
+}
+/* --- живые иконки как на iPhone --- */
+@keyframes boing{0%{transform:scale(1)}25%{transform:scale(.78)}55%{transform:scale(1.2)}75%{transform:scale(.94)}90%{transform:scale(1.04)}100%{transform:scale(1)}}
+.boing{animation:boing .5s cubic-bezier(.3,.7,.4,1)!important}
+@keyframes appopen{from{opacity:0;transform:scale(.88);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.page.show{transform-origin:var(--ox,50%) var(--oy,0);animation:appopen .38s cubic-bezier(.2,.9,.3,1)}
+html.phone .tbb.on em{animation:boing .45s}
+@media (prefers-reduced-motion:reduce){.boing,.page.show,html.phone .tbb.on em{animation:none!important}}
+html.chatfull .page.show{animation:none}

@@ -1,0 +1,43 @@
+<div class="c" id="setup">
+  <h1 id="h"></h1>
+  <div class="card cfg" id="cfg"></div>
+  <p class="mut" id="tot"></p>
+  <button class="p big" id="go"></button>
+</div>
+<div id="run" hidden>
+  <div class="ph" id="ph"></div>
+  <div class="big-t" id="t">0</div>
+  <div class="rd" id="rd"></div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="row cc"><button id="pause"></button><button id="stop"></button></div>
+</div>
+<style>
+.cfg div{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.cfg div:last-child{border:0}
+.cfg span{font-weight:600}.cfg em{font-style:normal;font-size:22px;font-weight:700;min-width:60px;text-align:center}
+.cfg button{width:40px;height:40px;padding:0;border-radius:50%;font-size:20px}
+.big{padding:14px 44px;border-radius:30px;font-size:20px}
+#run{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;transition:background .4s}
+#run.work{background:linear-gradient(160deg,#FF453A,#C81D4E)}#run.rest{background:linear-gradient(160deg,#30D158,#0A8F3C)}#run.prep{background:linear-gradient(160deg,#FF9F0A,#FF6A00)}#run.fin{background:linear-gradient(160deg,#5E5CE6,#BF5AF2)}
+.ph{font-size:28px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.big-t{font-size:min(36vw,190px);font-weight:200;font-variant-numeric:tabular-nums;line-height:1}
+.rd{font-size:20px;opacity:.9}
+.bar{width:min(420px,80vw);height:8px;border-radius:4px;background:rgba(255,255,255,.3);margin:20px 0;overflow:hidden}.bar i{display:block;height:100%;background:#fff;width:0;transition:width .25s linear}
+.cc{justify-content:center}.cc button{background:rgba(255,255,255,.25);color:#fff;min-width:120px;padding:12px}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},C={work:40,rest:20,rounds:8,prep:10},seq=[],k=0,left=0,end=0,tm=0,paused=false,ctx;
+var F=[['work',L('Работа, с','Work, s'),5,600,5],['rest',L('Отдых, с','Rest, s'),0,600,5],['rounds',L('Раундов','Rounds'),1,50,1],['prep',L('Подготовка, с','Get ready, s'),0,60,5]];
+$('h').textContent=L('Интервалы','Interval Timer');$('go').textContent=L('▶ Начать','▶ Start');$('pause').textContent=L('Пауза','Pause');$('stop').textContent=L('Стоп','Stop');
+function cfg(){var c=$('cfg');c.textContent='';F.forEach(function(f){var d=document.createElement('div'),s=document.createElement('span'),m=document.createElement('button'),e=document.createElement('em'),p=document.createElement('button');s.textContent=f[1];m.textContent='−';p.textContent='+';e.textContent=C[f[0]];
+  m.onclick=function(){C[f[0]]=Math.max(f[2],C[f[0]]-f[4]);cfg();};p.onclick=function(){C[f[0]]=Math.min(f[3],C[f[0]]+f[4]);cfg();};var w=document.createElement('div');w.style.border='0';w.style.padding='0';w.style.gap='8px';w.append(m,e,p);d.append(s,w);c.append(d);});
+  var t=C.prep+C.rounds*C.work+(C.rounds-1)*C.rest;$('tot').textContent=L('Всего: ','Total: ')+Math.floor(t/60)+':'+('0'+t%60).slice(-2);Horo.save('c',C);}
+function beep(f,d){try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();var o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;g.gain.setValueAtTime(.35,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d);o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+d);}catch(e){}}
+function phase(){if(k>=seq.length){$('run').className='fin';$('ph').textContent=L('Готово!','Done!');$('t').textContent='🎉';$('rd').textContent='';$('bar').style.width='100%';beep(1046,.6);clearInterval(tm);return;}
+  var p=seq[k];left=p[1];end=Date.now()+left*1000;$('run').className=p[0];$('ph').textContent={work:L('Работа','Work'),rest:L('Отдых','Rest'),prep:L('Приготовься','Get ready')}[p[0]];$('rd').textContent=p[2]?L('Раунд ','Round ')+p[2]+' / '+C.rounds:'';beep(p[0]==='work'?880:523,.4);}
+function tick(){if(paused)return;var l=Math.max(0,Math.ceil((end-Date.now())/1000));if(l!==left&&l<=3&&l>0)beep(660,.12);left=l;$('t').textContent=left;var p=seq[k];if(p)$('bar').style.width=(100*(1-(end-Date.now())/(p[1]*1000)))+'%';if(left<=0&&p){k++;phase();}}
+$('go').onclick=function(){seq=[];if(C.prep)seq.push(['prep',C.prep,0]);for(var r=1;r<=C.rounds;r++){seq.push(['work',C.work,r]);if(r<C.rounds&&C.rest)seq.push(['rest',C.rest,r]);}k=0;paused=false;$('setup').hidden=true;$('run').hidden=false;phase();tm=setInterval(tick,100);};
+$('pause').onclick=function(){paused=!paused;if(paused){left=Math.ceil((end-Date.now())/1000);this.textContent=L('Дальше','Resume');}else{end=Date.now()+left*1000;this.textContent=L('Пауза','Pause');}};
+$('stop').onclick=function(){clearInterval(tm);$('run').hidden=true;$('setup').hidden=false;};
+Horo.load('c').then(function(c){if(c)C=c;cfg();});
+</script>

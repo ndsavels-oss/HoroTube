@@ -1,0 +1,46 @@
+<!doctype html>
+<!--HT_LOADER_FILE  HoroTube: загрузчик. Его кладут на хостинг ОДИН раз (обычно под именем index.html).
+    Он открывает самую новую версию HoroTube из Supabase. Новые версии выпускает админ
+    в приложении «Обновления», вставлять код на хостинг больше не нужно.
+    Открыть конкретную версию (например, для отката): адрес_сайта?v=2026.10.25 -->
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HoroTube</title>
+<style>
+html,body{margin:0;height:100%;background:#0B1020;color:#fff;font:16px -apple-system,system-ui,Segoe UI,Roboto,sans-serif}
+.l{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:0 24px}
+.s{width:44px;height:44px;border:4px solid rgba(255,255,255,.18);border-top-color:#38B6FF;border-radius:50%;animation:r .9s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}a{color:#38B6FF}
+</style></head>
+<body><div class="l"><div class="s" id="s"></div><div id="m">Загружаю HoroTube…</div></div>
+<script>
+(function(){
+  var U='__SB_URL__',K='__SB_KEY__',CK='ht_rel_cache';
+  function cache(){try{return JSON.parse(localStorage.getItem(CK)||'null');}catch(e){return null;}}
+  function keep(v,h){try{localStorage.setItem(CK,JSON.stringify({v:v,h:h}));}catch(e){try{localStorage.removeItem(CK);}catch(x){}}}
+  function run(v,h){
+    h=h.replace(/<head([^>]*)>/i,function(m){return m+'<script>window.HT_LOADER={v:'+JSON.stringify(v)+'};<\/script>';});
+    document.open();document.write(h);document.close();
+  }
+  function wait(p,ms){return Promise.race([p,new Promise(function(_,no){setTimeout(function(){no(new Error('timeout'));},ms);})]);}
+  function ok(h){return typeof h==='string'&&h.indexOf('<html')>=0&&h.indexOf('HT_LOADER_FILE')<0;}
+  /* запасной путь: файл HoroTube.html рядом с загрузчиком на хостинге */
+  function local(){return wait(fetch('HoroTube.html',{cache:'no-store'}),15000).then(function(r){if(!r.ok)throw 0;return r.text();}).then(function(h){if(!ok(h))throw 0;run('local',h);});}
+  function fail(){
+    var c=cache();if(c&&ok(c.h)){run(c.v,c.h);return;}
+    local().catch(function(){$s();});
+  }
+  function $s(){document.getElementById('s').style.display='none';document.getElementById('m').innerHTML='Не получилось загрузить HoroTube.<br>Проверь интернет и <a href="">обнови страницу</a>.';}
+  var want=new URLSearchParams(location.search).get('v');
+  var q=U+'/rest/v1/ht_releases?select=version,path&order=id.desc&limit=1&'+(want?'version=eq.'+encodeURIComponent(want):'revoked=eq.false');
+  wait(fetch(q,{headers:{apikey:K},cache:'no-store'}),6000).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(a){
+    if(!a||!a.length)throw 0;
+    var x=a[0],c=cache();
+    if(c&&c.v===x.version&&ok(c.h)){run(c.v,c.h);return;}
+    return wait(fetch(U+'/storage/v1/object/public/ht_releases/'+encodeURIComponent(x.path),{cache:'no-store'}),25000)
+      .then(function(r){if(!r.ok)throw 0;return r.text();})
+      .then(function(h){if(!ok(h))throw 0;if(!want)keep(x.version,h);run(x.version,h);});
+  }).catch(fail);
+})();
+</script>
+</body></html>

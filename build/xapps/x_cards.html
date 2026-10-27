@@ -1,0 +1,64 @@
+<div id="home">
+  <h1 id="h"></h1>
+  <div id="decks"></div>
+  <div class="row"><input id="dn" maxlength="40"><button class="p" id="da">＋</button></div>
+</div>
+<div id="deck" hidden>
+  <button id="back"></button>
+  <h1 id="dt"></h1>
+  <button class="p big" id="study"></button>
+  <div class="card"><input id="f" maxlength="120"><input id="b" maxlength="200"><button class="p" id="add"></button></div>
+  <div id="list"></div>
+</div>
+<div id="learn" hidden class="c">
+  <button id="back2"></button>
+  <p class="mut" id="prog"></p>
+  <div class="flip" id="flip"><div class="in"><div class="fr" id="fr"></div><div class="bk" id="bk"></div></div></div>
+  <p class="mut" id="hint"></p>
+  <div class="row cc"><button id="again"></button><button class="p" id="know"></button></div>
+</div>
+<style>
+.dk{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer}
+.dk b{flex:1;font-size:17px}.dk small{color:var(--mut)}
+.row input{flex:1}
+.card input{width:100%;margin-bottom:8px}
+.big{width:100%;padding:14px;margin:6px 0 14px;font-size:18px}
+.it{display:flex;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.it span{flex:1}.it em{flex:1;color:var(--mut);font-style:normal}.it button{background:none;color:var(--mut);padding:0 6px}
+#back,#back2{background:none;color:var(--acc);padding:4px 0}
+.flip{perspective:1200px;width:min(420px,92%);height:240px;margin:18px auto;cursor:pointer}
+.flip .in{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.3,1.2,.5,1);transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.fr,.bk{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;display:flex;align-items:center;justify-content:center;padding:20px;font-size:26px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.fr{background:var(--card)}
+.bk{background:linear-gradient(135deg,#5E5CE6,#BF5AF2);color:#fff;transform:rotateY(180deg)}
+.cc{justify-content:center}
+.cc button{min-width:130px;padding:12px}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},D=[],cur=null,q=[],done=0;
+$('h').textContent=L('Карточки','Flashcards');$('dn').placeholder=L('Новая колода: английский, история…','New deck: English, history…');
+$('back').textContent=$('back2').textContent=L('‹ Назад','‹ Back');$('study').textContent=L('▶ Учить','▶ Study');
+$('f').placeholder=L('Вопрос или слово','Question or word');$('b').placeholder=L('Ответ или перевод','Answer or translation');$('add').textContent=L('Добавить карточку','Add card');
+$('again').textContent=L('↺ Повторить','↺ Again');$('know').textContent=L('✓ Знаю','✓ Got it');$('hint').textContent=L('Нажми на карточку, чтобы перевернуть','Tap the card to flip it');
+if(!D.length)D=[];
+function save(){Horo.save('d',D);}
+function show(id){['home','deck','learn'].forEach(function(x){$(x).hidden=x!==id;});}
+function home(){show('home');var l=$('decks');l.textContent='';
+  if(!D.length){var p=document.createElement('p');p.className='mut';p.textContent=L('Создай колоду и добавь карточки: слово — перевод, дата — событие.','Create a deck and add cards: word and translation, date and event.');l.append(p);}
+  D.forEach(function(d,i){var r=document.createElement('div');r.className='dk';var b=document.createElement('b');b.textContent='🗂 '+d.n;var s=document.createElement('small');s.textContent=d.c.length+' '+L('карт.','cards');r.append(b,s);r.onclick=function(){cur=i;deck();};l.append(r);});}
+function deck(){show('deck');var d=D[cur];$('dt').textContent=d.n;var l=$('list');l.textContent='';
+  d.c.forEach(function(c,i){var r=document.createElement('div');r.className='it';var a=document.createElement('span');a.textContent=c[0];var b=document.createElement('em');b.textContent=c[1];var x=document.createElement('button');x.textContent='✕';x.onclick=function(){d.c.splice(i,1);save();deck();};r.append(a,b,x);l.append(r);});
+  var del=document.createElement('button');del.textContent=L('Удалить колоду','Delete deck');del.style.marginTop='14px';del.onclick=function(){D.splice(cur,1);save();home();};l.append(del);}
+function learn(){var d=D[cur];if(!d.c.length){Horo.toast(L('Сначала добавь карточки','Add some cards first'));return;}q=d.c.map(function(c,i){return i;}).sort(function(){return Math.random()-.5;});done=0;show('learn');card();}
+function card(){var d=D[cur];$('flip').classList.remove('on');if(!q.length){$('fr').textContent='🎉 '+L('Колода пройдена!','Deck complete!');$('bk').textContent='';$('prog').textContent='';return;}
+  setTimeout(function(){var c=d.c[q[0]];$('fr').textContent=c[0];$('bk').textContent=c[1];},150);$('prog').textContent=L('Осталось: ','Left: ')+q.length;}
+$('flip').onclick=function(){if(q.length)this.classList.toggle('on');};
+$('know').onclick=function(){if(!q.length){deck();return;}q.shift();done++;card();};
+$('again').onclick=function(){if(!q.length){learn();return;}q.push(q.shift());card();};
+$('da').onclick=function(){var n=$('dn').value.trim();if(!n)return;D.push({n:n,c:[]});$('dn').value='';save();cur=D.length-1;deck();};
+$('add').onclick=function(){var f=$('f').value.trim(),b=$('b').value.trim();if(!f||!b)return;D[cur].c.push([f,b]);$('f').value='';$('b').value='';save();deck();$('f').focus();};
+$('b').onkeydown=function(e){if(e.key==='Enter')$('add').click();};
+$('back').onclick=home;$('back2').onclick=deck;$('study').onclick=learn;
+Horo.load('d').then(function(d){if(Array.isArray(d))D=d;else D=[{n:L('Английский: животные','English: animals'),c:[['cat','кошка'],['dog','собака'],['horse','лошадь'],['bird','птица'],['fish','рыба']]}];home();});
+</script>

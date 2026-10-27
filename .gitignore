@@ -1,0 +1,5 @@
+build/out.html
+build/loader.html
+build/chk.js
+tests/shots/
+node_modules/

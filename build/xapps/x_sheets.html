@@ -1,0 +1,156 @@
+<div class="bar">
+  <div class="tools"><button id="bB"><b>Ж</b></button><button id="bI"><i>К</i></button><select id="bF"></select><select id="bC"></select><button id="bA">←</button><button id="bM">↔</button><button id="bR">→</button><button id="bCh">📊</button><button id="bU">↩</button></div>
+  <div class="fx"><span id="nm">A1</span><i>fx</i><input id="fi"></div>
+</div>
+<div class="wrap" id="wrap"><table id="t"></table></div>
+<div class="foot"><div id="tabs" class="tabs"></div><span id="sum" class="mut"></span></div>
+<div id="chw" class="chw" hidden><div class="card"><div class="row"><b id="cht"></b><span style="flex:1"></span><select id="chk"></select><button id="chx">✕</button></div><canvas id="ch" width="560" height="300"></canvas></div></div>
+<style>
+body{padding:0;background:var(--bg);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.bar{background:var(--card);border-bottom:1px solid var(--line);padding:6px 8px}
+.tools{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}.tools button,.tools select{padding:5px 9px;font-size:14px}
+.tools button.on{background:#1D6F42;color:#fff}
+.fx{display:flex;align-items:center;gap:6px}.fx span{min-width:46px;font-weight:700;color:#1D6F42}.fx i{color:var(--mut);font-style:italic}
+.fx input{flex:1;font:14px ui-monospace,Menlo,monospace;padding:6px 8px}
+.wrap{flex:1;overflow:auto;position:relative}
+table{border-collapse:collapse;font-size:13px;user-select:none}
+th{position:sticky;top:0;background:var(--bg);color:var(--mut);font-weight:600;min-width:84px;height:24px;border:1px solid var(--line);z-index:1}
+th:first-child,td.rh{position:sticky;left:0;min-width:38px;background:var(--bg);color:var(--mut);text-align:center;z-index:2}
+th:first-child{z-index:3}
+td{border:1px solid var(--line);height:24px;padding:0 5px;white-space:nowrap;overflow:hidden;max-width:160px;background:var(--card);cursor:cell}
+td.num{text-align:right}td.err{color:#FF3B30}
+td.in{background:color-mix(in srgb,#1D6F42 12%,var(--card))}
+td.sel{outline:2px solid #1D6F42;outline-offset:-2px;position:relative}
+td input{width:100%;border:0;padding:0;font:inherit;background:transparent;outline:0;border-radius:0}
+.foot{display:flex;align-items:center;gap:10px;background:var(--card);border-top:1px solid var(--line);padding:4px 8px}
+.tabs{display:flex;gap:4px;flex:1;overflow-x:auto}.tabs button{padding:5px 12px;font-size:13px;white-space:nowrap}.tabs button.on{background:#1D6F42;color:#fff}
+.chw{position:fixed;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;animation:fi .2s}
+.chw .card{width:min(600px,94vw)}.chw canvas{width:100%;height:auto}@keyframes fi{from{opacity:0}}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},COLS=26,ROWS=60,D,S,sel={c:0,r:0},anc=null,edit=false,hist=[],cache={};
+var FMT=[['',L('Обычный','General')],['0','0'],['2','0.00'],['%','%'],['€','€'],['₽','₽']];
+var CLR=[['',L('Заливка','Fill')],['#FFF3B0',L('Жёлтый','Yellow')],['#C9F2D0',L('Зелёный','Green')],['#CFE3FF',L('Голубой','Blue')],['#FFD3D3',L('Розовый','Pink')],['#E5E5EA',L('Серый','Grey')]];
+function cn(c){return String.fromCharCode(65+c);}
+function id(c,r){return cn(c)+(r+1);}
+function pid(s){var m=/^([A-Z])(\d+)$/.exec(s);return m?{c:m[1].charCodeAt(0)-65,r:+m[2]-1}:null;}
+function cell(k){return S.c[k]||null;}
+/* ---- формулы: свой маленький разборщик, без eval ---- */
+var FN={SUM:function(a){return fl(a).reduce(function(s,x){return s+num(x);},0);},AVERAGE:function(a){var f=fl(a).filter(isN);return f.length?FN.SUM([f])/f.length:0;},
+  MIN:function(a){var f=fl(a).filter(isN).map(Number);return f.length?Math.min.apply(0,f):0;},MAX:function(a){var f=fl(a).filter(isN).map(Number);return f.length?Math.max.apply(0,f):0;},
+  COUNT:function(a){return fl(a).filter(isN).length;},IF:function(a){return a[0]?a[1]:(a.length>2?a[2]:false);},ROUND:function(a){var p=Math.pow(10,num(a[1]||0));return Math.round(num(a[0])*p)/p;},
+  ABS:function(a){return Math.abs(num(a[0]));},SQRT:function(a){return Math.sqrt(num(a[0]));},CONCAT:function(a){return fl(a).join('');}};
+var ALIAS={'СУММ':'SUM','СРЗНАЧ':'AVERAGE','МИН':'MIN','МАКС':'MAX','СЧЁТ':'COUNT','СЧЕТ':'COUNT','ЕСЛИ':'IF','ОКРУГЛ':'ROUND','КОРЕНЬ':'SQRT','СЦЕП':'CONCAT','AVG':'AVERAGE'};
+function fl(a){var o=[];a.forEach(function(x){if(Array.isArray(x))o=o.concat(fl(x));else o.push(x);});return o;}
+function isN(x){return x!==''&&x!==null&&typeof x!=='boolean'&&!isNaN(x);}
+function num(x){if(x===''||x===null)return 0;if(typeof x==='boolean')return x?1:0;var n=Number(x);if(isNaN(n))throw '#ЗНАЧ!';return n;}
+function lex(s){var t=[],i=0,m;while(i<s.length){var r=s.slice(i);
+  if(m=/^\s+/.exec(r)){i+=m[0].length;continue;}
+  if(m=/^\d+(\.\d+)?/.exec(r))t.push({t:'n',v:+m[0]});
+  else if(m=/^"([^"]*)"/.exec(r))t.push({t:'s',v:m[1]});
+  else if(m=/^([A-Z])(\d+):([A-Z])(\d+)/i.exec(r))t.push({t:'rg',v:m[0].toUpperCase()});
+  else if(m=/^[A-ZА-ЯЁ]+(?=\s*\()/i.exec(r))t.push({t:'f',v:m[0].toUpperCase()});
+  else if(m=/^([A-Z])(\d+)/i.exec(r))t.push({t:'r',v:m[0].toUpperCase()});
+  else if(m=/^(TRUE|FALSE|ИСТИНА|ЛОЖЬ)/i.exec(r))t.push({t:'b',v:/^(TRUE|ИСТИНА)$/i.test(m[0])});
+  else if(m=/^(<=|>=|<>|[-+*\/^&=<>(),;%])/.exec(r))t.push({t:'o',v:m[0]});
+  else throw '#ИМЯ?';i+=m[0].length;}return t;}
+function parse(s,seen){var t=lex(s),p=0;
+  function pk(v){return t[p]&&t[p].t==='o'&&t[p].v===v;}
+  function cmp(){var a=cat();while(t[p]&&t[p].t==='o'&&/^(=|<>|<|>|<=|>=)$/.test(t[p].v)){var o=t[p++].v,b=cat();a=o==='='?a==b:o==='<>'?a!=b:o==='<'?a<b:o==='>'?a>b:o==='<='?a<=b:a>=b;}return a;}
+  function cat(){var a=add();while(pk('&')){p++;a=String(a)+String(add());}return a;}
+  function add(){var a=mul();while(pk('+')||pk('-')){var o=t[p++].v,b=mul();a=o==='+'?num(a)+num(b):num(a)-num(b);}return a;}
+  function mul(){var a=pw();while(pk('*')||pk('/')){var o=t[p++].v,b=pw();if(o==='/'&&num(b)===0)throw '#ДЕЛ/0!';a=o==='*'?num(a)*num(b):num(a)/num(b);}return a;}
+  function pw(){var a=un();while(pk('^')){p++;a=Math.pow(num(a),num(un()));}return a;}
+  function un(){if(pk('-')){p++;return -num(un());}if(pk('+')){p++;return num(un());}var a=at();if(pk('%')){p++;a=num(a)/100;}return a;}
+  function at(){var k=t[p++];if(!k)throw '#ОШИБКА';
+    if(k.t==='n'||k.t==='s'||k.t==='b')return k.v;
+    if(k.t==='r')return val(k.v,seen);
+    if(k.t==='rg'){var a=k.v.split(':'),x=pid(a[0]),y=pid(a[1]),o=[];for(var r=Math.min(x.r,y.r);r<=Math.max(x.r,y.r);r++)for(var c=Math.min(x.c,y.c);c<=Math.max(x.c,y.c);c++)o.push(val(id(c,r),seen));return o;}
+    if(k.t==='f'){var n=ALIAS[k.v]||k.v,f=FN[n];if(!f)throw '#ИМЯ?';p++;var args=[];if(!pk(')')){do{args.push(cmp());}while((pk(',')||pk(';'))&&++p);}if(!pk(')'))throw '#ОШИБКА';p++;return f(args);}
+    if(k.t==='o'&&k.v==='('){var v=cmp();if(!pk(')'))throw '#ОШИБКА';p++;return v;}
+    throw '#ОШИБКА';}
+  var v=cmp();if(p<t.length)throw '#ОШИБКА';return v;}
+function val(k,seen){if(k in cache)return cache[k];var c=cell(k),raw=c?c.v:'';seen=seen||{};
+  if(seen[k])throw '#ЦИКЛ!';var v;
+  if(typeof raw==='string'&&raw[0]==='='){seen[k]=1;try{v=parse(raw.slice(1),seen);}finally{delete seen[k];}}
+  else v=raw!==''&&!isNaN(raw)?Number(raw):raw;
+  cache[k]=v;return v;}
+var ERR_EN={'#ДЕЛ/0!':'#DIV/0!','#ЦИКЛ!':'#CYCLE!','#ЗНАЧ!':'#VALUE!','#ИМЯ?':'#NAME?','#ОШИБКА':'#ERROR','#ЧИСЛО!':'#NUM!'};
+function er(t){return HL.indexOf('en')===0&&ERR_EN[t]?ERR_EN[t]:t;}
+function show(k){var c=cell(k);if(!c||c.v==='')return {t:''};var v;try{v=val(k);}catch(e){return {t:er(typeof e==='string'?e:'#ОШИБКА'),e:1};}
+  if(Array.isArray(v))return {t:er('#ЗНАЧ!'),e:1};if(typeof v==='boolean')return {t:v?L('ИСТИНА','TRUE'):L('ЛОЖЬ','FALSE')};
+  if(typeof v==='number'){var f=c.fmt||'',s;if(!isFinite(v))return {t:er('#ЧИСЛО!'),e:1};
+    s=f==='0'?Math.round(v).toLocaleString(HL):f==='2'?v.toLocaleString(HL,{minimumFractionDigits:2,maximumFractionDigits:2}):f==='%'?(v*100).toLocaleString(HL,{maximumFractionDigits:1})+'%':f==='€'||f==='₽'?v.toLocaleString(HL,{minimumFractionDigits:2,maximumFractionDigits:2})+' '+f:String(Math.round(v*1e10)/1e10);return {t:s,n:1};}
+  return {t:String(v)};}
+</script>
+<script>
+function rng(){var a=anc||sel;return {c1:Math.min(a.c,sel.c),c2:Math.max(a.c,sel.c),r1:Math.min(a.r,sel.r),r2:Math.max(a.r,sel.r)};}
+function build(){var t=$('t');t.textContent='';var h=t.insertRow();h.append(document.createElement('th'));for(var c=0;c<COLS;c++){var th=document.createElement('th');th.textContent=cn(c);h.append(th);}
+  for(var r=0;r<ROWS;r++){var tr=t.insertRow(),rh=tr.insertCell();rh.className='rh';rh.textContent=r+1;for(var c2=0;c2<COLS;c2++){var td=tr.insertCell();td.dataset.c=c2;td.dataset.r=r;}}}
+function td(c,r){return $('t').rows[r+1].cells[c+1];}
+function paint(){cache={};var g=rng();for(var r=0;r<ROWS;r++)for(var c=0;c<COLS;c++){var e=td(c,r),k=id(c,r),x=cell(k),s=show(k);
+    if(e.firstChild&&e.firstChild.tagName==='INPUT')continue;e.textContent=s.t;
+    e.className=(s.n?'num ':'')+(s.e?'err ':'')+(c>=g.c1&&c<=g.c2&&r>=g.r1&&r<=g.r2&&(g.c1!==g.c2||g.r1!==g.r2)?'in ':'')+(c===sel.c&&r===sel.r?'sel':'');
+    e.style.fontWeight=x&&x.b?'700':'';e.style.fontStyle=x&&x.i?'italic':'';e.style.background=x&&x.f?x.f:'';e.style.textAlign=x&&x.a?{l:'left',m:'center',r:'right'}[x.a]:'';}
+  var k2=id(sel.c,sel.r),cx=cell(k2);$('nm').textContent=g.c1===g.c2&&g.r1===g.r2?k2:id(g.c1,g.r1)+':'+id(g.c2,g.r2);if(document.activeElement!==$('fi'))$('fi').value=cx?cx.v:'';
+  $('bB').classList.toggle('on',!!(cx&&cx.b));$('bI').classList.toggle('on',!!(cx&&cx.i));$('bF').value=cx&&cx.fmt||'';
+  var ns=[];for(var r2=g.r1;r2<=g.r2;r2++)for(var c3=g.c1;c3<=g.c2;c3++){try{var v=val(id(c3,r2));if(typeof v==='number')ns.push(v);}catch(e){}}
+  $('sum').textContent=ns.length>1?L('Сумма: ','Sum: ')+(Math.round(ns.reduce(function(a,b){return a+b;},0)*1e6)/1e6)+' · '+L('Среднее: ','Average: ')+(Math.round(ns.reduce(function(a,b){return a+b;},0)/ns.length*1e4)/1e4):'';}
+function snap(){hist.push(JSON.stringify(S.c));if(hist.length>50)hist.shift();}
+var saveT;function save(){clearTimeout(saveT);saveT=setTimeout(function(){if(JSON.stringify(JSON.stringify(D)).length>49000){Horo.toast(L('Таблица слишком большая для сохранения','Spreadsheet is too big to save'));return;}Horo.save('doc',D);},300);}
+function setv(k,v){var c=S.c[k]||{};c.v=v;if(v===''&&!c.b&&!c.i&&!c.f&&!c.fmt&&!c.a)delete S.c[k];else S.c[k]=c;}
+function each(fn){var g=rng();snap();for(var r=g.r1;r<=g.r2;r++)for(var c=g.c1;c<=g.c2;c++){var k=id(c,r),x=S.c[k]||{v:''};fn(x);S.c[k]=x;}paint();save();}
+function startEdit(init){var e=td(sel.c,sel.r),k=id(sel.c,sel.r),x=cell(k);edit=true;var i=document.createElement('input');i.value=init!==undefined?init:(x?x.v:'');e.textContent='';e.append(i);i.focus();
+  i.onkeydown=function(ev){if(ev.key==='Enter'||ev.key==='Tab'){ev.preventDefault();commit(i.value);go(ev.key==='Tab'?1:0,ev.key==='Enter'?1:0);}else if(ev.key==='Escape'){edit=false;unedit();paint();}ev.stopPropagation();};
+  i.onblur=function(){if(edit)commit(i.value);};i.oninput=function(){$('fi').value=i.value;};}
+function unedit(){var i=$('t').querySelector('td input');if(i){i.onblur=null;i.parentNode.textContent='';}}
+function commit(v){if(!edit)return;edit=false;unedit();snap();setv(id(sel.c,sel.r),v.trim());paint();save();}
+function go(dc,dr,ext){if(!ext)anc=null;else if(!anc)anc={c:sel.c,r:sel.r};sel={c:Math.max(0,Math.min(COLS-1,sel.c+dc)),r:Math.max(0,Math.min(ROWS-1,sel.r+dr))};paint();var e=td(sel.c,sel.r);e.scrollIntoView({block:'nearest',inline:'nearest'});}
+var drag=false;
+$('t').addEventListener('pointerdown',function(e){var d=e.target.closest('td');if(!d||d.classList.contains('rh')||e.target.tagName==='INPUT')return;if(edit)commit(td(sel.c,sel.r).firstChild.value);var p={c:+d.dataset.c,r:+d.dataset.r};if(e.shiftKey){if(!anc)anc=sel;}else anc=p;sel=p;drag=true;paint();});
+$('t').addEventListener('pointerover',function(e){if(!drag)return;var d=e.target.closest('td');if(!d||d.classList.contains('rh'))return;sel={c:+d.dataset.c,r:+d.dataset.r};paint();});
+addEventListener('pointerup',function(){drag=false;});
+$('t').addEventListener('dblclick',function(e){var d=e.target.closest('td');if(d&&!d.classList.contains('rh'))startEdit();});
+addEventListener('keydown',function(e){if(edit||document.activeElement===$('fi')||e.target.tagName==='SELECT')return;
+  var m={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],Tab:[1,0],Enter:[0,1]}[e.key];
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();$('bU').click();return;}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='b'){e.preventDefault();$('bB').click();return;}
+  if(m){e.preventDefault();go(m[0],m[1],e.shiftKey&&e.key.indexOf('Arrow')===0);}
+  else if(e.key==='F2')startEdit();
+  else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();each(function(x){x.v='';});}
+  else if(e.key.length===1&&!e.ctrlKey&&!e.metaKey){e.preventDefault();startEdit(e.key);}});
+$('fi').addEventListener('keydown',function(e){if(e.key==='Enter'){snap();setv(id(sel.c,sel.r),this.value.trim());this.blur();go(0,1);save();}});
+$('fi').addEventListener('input',function(){var e=td(sel.c,sel.r);e.textContent=this.value;});
+$('bB').onclick=function(){var x=cell(id(sel.c,sel.r)),on=!(x&&x.b);each(function(c){c.b=on?1:0;});};
+$('bI').onclick=function(){var x=cell(id(sel.c,sel.r)),on=!(x&&x.i);each(function(c){c.i=on?1:0;});};
+$('bA').onclick=function(){each(function(c){c.a='l';});};$('bM').onclick=function(){each(function(c){c.a='m';});};$('bR').onclick=function(){each(function(c){c.a='r';});};
+FMT.forEach(function(f){var o=document.createElement('option');o.value=f[0];o.textContent=f[1];$('bF').append(o);});
+CLR.forEach(function(f){var o=document.createElement('option');o.value=f[0];o.textContent=f[1];$('bC').append(o);});
+$('bF').onchange=function(){var v=this.value;each(function(c){c.fmt=v;});};
+$('bC').onchange=function(){var v=this.value;each(function(c){c.f=v;});this.value='';};
+$('bU').onclick=function(){var h=hist.pop();if(h){S.c=JSON.parse(h);paint();save();}};
+function tabs(){var t=$('tabs');t.textContent='';D.sheets.forEach(function(s,i){var b=document.createElement('button');b.textContent=s.n;b.title=L('Нажми ещё раз, чтобы переименовать','Click again to rename');if(i===D.cur)b.className='on';b.onclick=function(){if(i===D.cur){var inp=document.createElement('input');inp.value=s.n;inp.style.width='110px';b.replaceWith(inp);inp.focus();inp.select();var done=function(){var n=inp.value.trim();if(n)s.n=n.slice(0,24);tabs();save();};inp.onblur=done;inp.onkeydown=function(ev){ev.stopPropagation();if(ev.key==='Enter')inp.blur();};return;}D.cur=i;S=D.sheets[i];hist=[];sel={c:0,r:0};anc=null;tabs();paint();save();};t.append(b);});
+  var p=document.createElement('button');p.textContent='+';p.onclick=function(){D.sheets.push({n:L('Лист','Sheet')+(D.sheets.length+1),c:{}});D.cur=D.sheets.length-1;S=D.sheets[D.cur];tabs();paint();save();};t.append(p);}
+/* диаграмма по выделению: первая колонка — подписи, следующие — числа */
+var CC=['#1D6F42','#0A84FF','#FF9F0A','#FF375F','#BF5AF2','#30D158'];
+function chart(){var g=rng(),kind=$('chk').value,lab=[],ser=[],cv=$('ch'),x=cv.getContext('2d'),W=cv.width,H=cv.height;
+  var first=g.c1,txt=false;for(var r=g.r1;r<=g.r2;r++){try{if(typeof val(id(first,r))!=='number'&&val(id(first,r))!=='')txt=true;}catch(e){}}
+  var c0=txt&&g.c2>g.c1?first+1:first;for(var r2=g.r1;r2<=g.r2;r2++){lab.push(txt&&g.c2>g.c1?String(val(id(first,r2))):String(r2+1));}
+  for(var c=c0;c<=g.c2;c++){var s=[];for(var r3=g.r1;r3<=g.r2;r3++){var v=0;try{v=Number(val(id(c,r3)))||0;}catch(e){}s.push(v);}ser.push(s);}
+  x.clearRect(0,0,W,H);var all=fl(ser),mx=Math.max.apply(0,all.concat([0])),mn=Math.min.apply(0,all.concat([0])),span=mx-mn||1,pl=40,pb=40,ih=H-pb-12,iw=W-pl-10,n=lab.length;
+  x.font='12px system-ui';x.fillStyle=getComputedStyle(document.body).color;
+  if(kind==='pie'){var tot=ser[0].reduce(function(a,b){return a+Math.max(0,b);},0)||1,a0=-Math.PI/2;ser[0].forEach(function(v,i){var a=Math.max(0,v)/tot*Math.PI*2;x.beginPath();x.moveTo(150,150);x.arc(150,150,120,a0,a0+a);x.fillStyle=CC[i%CC.length];x.fill();a0+=a;x.fillRect(310,30+i*22,14,14);x.fillStyle=getComputedStyle(document.body).color;x.fillText(lab[i]+' — '+v,330,42+i*22);});return;}
+  var y0=12+ih*(mx/span);x.strokeStyle='rgba(128,128,128,.4)';x.beginPath();x.moveTo(pl,y0);x.lineTo(W-10,y0);x.stroke();x.fillText(String(Math.round(mx*100)/100),2,16);x.fillText(String(Math.round(mn*100)/100),2,12+ih);
+  ser.forEach(function(s,k){x.fillStyle=x.strokeStyle=CC[k%CC.length];x.lineWidth=3;x.beginPath();s.forEach(function(v,i){var bw=iw/n,X=pl+i*bw,Y=12+ih*((mx-v)/span);
+    if(kind==='bar'){var w=bw*.8/ser.length;x.fillRect(X+bw*.1+k*w,Math.min(Y,y0),w-2,Math.abs(y0-Y));}else{if(i)x.lineTo(X+bw/2,Y);else x.moveTo(X+bw/2,Y);}});if(kind==='line')x.stroke();});
+  x.fillStyle=getComputedStyle(document.body).color;lab.forEach(function(l,i){x.fillText(l.slice(0,10),pl+i*iw/n+4,H-pb+18);});}
+[['bar',L('Столбцы','Bars')],['line',L('Линия','Line')],['pie',L('Круговая','Pie')]].forEach(function(f){var o=document.createElement('option');o.value=f[0];o.textContent=f[1];$('chk').append(o);});
+$('bCh').onclick=function(){var g=rng();if(g.c1===g.c2&&g.r1===g.r2){Horo.toast(L('Выдели ячейки с числами (протяни мышкой или Shift+стрелки)','Select cells with numbers first'));return;}$('cht').textContent=L('Диаграмма ','Chart ')+$('nm').textContent;$('chw').hidden=false;chart();};
+$('chk').onchange=chart;$('chx').onclick=function(){$('chw').hidden=true;};
+$('bB').title=L('Жирный','Bold');$('bI').title=L('Курсив','Italic');$('bCh').title=L('Диаграмма','Chart');$('bU').title=L('Отменить','Undo');
+if(HL.indexOf('ru')!==0){$('bB').firstChild.textContent='B';$('bI').firstChild.textContent='I';}
+function demo(){return {cur:0,sheets:[{n:L('Оценки','Grades'),c:{A1:{v:L('Предмет','Subject'),b:1,f:'#C9F2D0'},B1:{v:L('Четверть 1','Term 1'),b:1,f:'#C9F2D0'},C1:{v:L('Четверть 2','Term 2'),b:1,f:'#C9F2D0'},D1:{v:L('Среднее','Average'),b:1,f:'#C9F2D0'},
+  A2:{v:L('Математика','Maths')},B2:{v:'8'},C2:{v:'9'},D2:{v:'=AVERAGE(B2:C2)',fmt:'2'},A3:{v:L('Физика','Physics')},B3:{v:'7'},C3:{v:'8'},D3:{v:'=AVERAGE(B3:C3)',fmt:'2'},A4:{v:L('Английский','English')},B4:{v:'9'},C4:{v:'10'},D4:{v:'=AVERAGE(B4:C4)',fmt:'2'},
+  A6:{v:L('Итого','Total'),b:1},D6:{v:'=AVERAGE(D2:D4)',fmt:'2',b:1}}}]};}
+build();Horo.load('doc').then(function(j){D=j&&typeof j==='object'?j:null;if(!D||!D.sheets)D=demo();S=D.sheets[D.cur]||D.sheets[0];tabs();paint();});
+</script>

@@ -1,0 +1,47 @@
+<h1 id="h"></h1>
+<div class="seg" id="cats"></div>
+<div class="card">
+  <input id="v" type="number" inputmode="decimal" value="1">
+  <select id="f"></select>
+  <button id="sw" class="sw" aria-label="swap">⇅</button>
+  <div class="res" id="r"></div>
+  <select id="t"></select>
+</div>
+<div class="card" id="all"></div>
+<style>
+.seg{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;scrollbar-width:none}
+.seg button{white-space:nowrap}
+.seg button.on{background:var(--acc);color:#fff}
+.card input,.card select{width:100%;margin:4px 0;font-size:20px}
+.sw{display:block;margin:6px auto;border-radius:50%;width:44px;height:44px;padding:0;font-size:20px}
+.res{font-size:34px;font-weight:700;margin:6px 2px;word-break:break-all}
+#all div{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px solid var(--line);font-size:15px}
+#all div:last-child{border:0}
+#all b{font-weight:600}
+</style>
+<script>
+var C={
+  len:[L('Длина','Length'),{mm:[L('миллиметр','millimetre'),.001],cm:[L('сантиметр','centimetre'),.01],m:[L('метр','metre'),1],km:[L('километр','kilometre'),1000],in:[L('дюйм','inch'),.0254],ft:[L('фут','foot'),.3048],yd:[L('ярд','yard'),.9144],mi:[L('миля','mile'),1609.344]}],
+  mass:[L('Масса','Mass'),{mg:[L('миллиграмм','milligram'),1e-6],g:[L('грамм','gram'),.001],kg:[L('килограмм','kilogram'),1],t:[L('тонна','tonne'),1000],oz:[L('унция','ounce'),.0283495],lb:[L('фунт','pound'),.453592]}],
+  temp:[L('Температура','Temperature'),{c:['°C'],f:['°F'],k:[L('кельвин','kelvin')]}],
+  area:[L('Площадь','Area'),{cm2:['см²',1e-4],m2:['м²',1],ha:[L('гектар','hectare'),1e4],km2:['км²',1e6],ac:[L('акр','acre'),4046.86]}],
+  vol:[L('Объём','Volume'),{ml:[L('миллилитр','millilitre'),.001],l:[L('литр','litre'),1],m3:['м³',1000],gal:[L('галлон (США)','gallon (US)'),3.78541],cup:[L('чашка','cup'),.24]}],
+  speed:[L('Скорость','Speed'),{ms:[L('м/с','m/s'),1],kmh:[L('км/ч','km/h'),1/3.6],mph:[L('миль/ч','mph'),.44704],kn:[L('узел','knot'),.514444]}],
+  time:[L('Время','Time'),{s:[L('секунда','second'),1],min:[L('минута','minute'),60],h:[L('час','hour'),3600],d:[L('сутки','day'),86400],w:[L('неделя','week'),604800],y:[L('год','year'),31557600]}],
+  data:[L('Данные','Data'),{b:[L('байт','byte'),1],kb:[L('килобайт','kilobyte'),1024],mb:[L('мегабайт','megabyte'),1048576],gb:[L('гигабайт','gigabyte'),1073741824],tb:[L('терабайт','terabyte'),1099511627776]}]
+};
+var cat='len';
+document.getElementById('h').textContent=L('Конвертер','Converter');
+function toBase(c,u,v){if(c!=='temp')return v*C[c][1][u][1];return u==='c'?v:u==='f'?(v-32)*5/9:v-273.15;}
+function fromBase(c,u,v){if(c!=='temp')return v/C[c][1][u][1];return u==='c'?v:u==='f'?v*9/5+32:v+273.15;}
+function fmt(x){if(!isFinite(x))return '—';var a=Math.abs(x);if(a!==0&&(a<1e-4||a>=1e12))return x.toExponential(4);return String(Math.round(x*1e6)/1e6).replace('.',HL==='en'?'.':',');}
+function drawCats(){var s=document.getElementById('cats');s.textContent='';Object.keys(C).forEach(function(k){var b=document.createElement('button');b.textContent=C[k][0];if(k===cat)b.className='on';b.onclick=function(){cat=k;drawCats();fill();calc();Horo.save('cat',k);};s.append(b);});}
+function fill(){var n=Object.keys(C[cat][1]).length;['f','t'].forEach(function(id){var s=document.getElementById(id);s.textContent='';Object.keys(C[cat][1]).forEach(function(u){var o=document.createElement('option');o.value=u;o.textContent=C[cat][1][u][0];s.append(o);});});
+  document.getElementById('f').selectedIndex=n>3?2:0;document.getElementById('t').selectedIndex=n>3?3:1;}
+function calc(){var v=parseFloat(document.getElementById('v').value.replace(',','.'))||0,f=document.getElementById('f').value,t=document.getElementById('t').value,b=toBase(cat,f,v);
+  document.getElementById('r').textContent=fmt(fromBase(cat,t,b))+' '+C[cat][1][t][0];
+  var a=document.getElementById('all');a.textContent='';Object.keys(C[cat][1]).forEach(function(u){var d=document.createElement('div'),x=document.createElement('span'),y=document.createElement('b');x.textContent=C[cat][1][u][0];y.textContent=fmt(fromBase(cat,u,b));d.append(x,y);a.append(d);});}
+['v','f','t'].forEach(function(id){document.getElementById(id).addEventListener('input',calc);});
+document.getElementById('sw').onclick=function(){var f=document.getElementById('f'),t=document.getElementById('t'),x=f.value;f.value=t.value;t.value=x;calc();};
+Horo.load('cat').then(function(k){if(k&&C[k])cat=k;drawCats();fill();calc();});
+</script>

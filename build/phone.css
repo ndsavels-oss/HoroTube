@@ -1,0 +1,41 @@
+/* --- мобильный вид (класс html.phone ставит phone.js) --- */
+.tabbar,.sideshade{display:none}
+html.phone body{padding-bottom:calc(74px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
+html.phone .top{margin:6px;top:6px;padding:6px 8px;gap:6px;border-radius:16px}
+html.phone .logo svg{width:32px;height:32px}html.phone .logo span{display:none}
+html.phone #btnUp,html.phone #btnDm{display:none}
+html.phone .search{height:40px;padding:0 12px}
+html.phone .me div:last-child{display:none}
+html.phone .main{margin-left:0;padding:8px 10px}
+html.phone .title{font-size:24px}
+html.phone input,html.phone textarea,html.phone select{font-size:16px}/* iPhone не приближает страницу при вводе */
+/* боковое меню превращается в выезжающую снизу панель «Ещё» */
+html.phone .side{position:fixed;left:8px;right:8px;top:auto;bottom:calc(80px + env(safe-area-inset-bottom));width:auto;max-height:70vh;overflow-y:auto;background:var(--white);border-radius:20px;padding:10px;box-shadow:0 12px 40px rgba(11,15,24,.25);z-index:41;
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;transform:translateY(20px);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.2,.9,.3,1.1),opacity .2s}
+html.phone.more .side{transform:none;opacity:1;pointer-events:auto}
+html.phone .side span{display:inline}html.phone .side a{justify-content:flex-start;padding:12px;background:var(--bg)}html.phone .side .adlink{margin-top:0}
+html.phone .sideshade{display:block;position:fixed;inset:0;background:rgba(11,15,24,.35);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+html.phone.more .sideshade{opacity:1;pointer-events:auto}
+html.phone .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:42;background:var(--white);padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(11,15,24,.10);border-radius:18px 18px 0 0}
+.tbb{flex:1;position:relative;border:0;background:none;color:var(--text2);font:inherit;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;transition:color .2s,transform .15s}
+.tbb em{font-style:normal;font-size:22px;line-height:1.1;transition:transform .2s}.tbb.on{color:var(--blue)}.tbb.on em{transform:translateY(-2px) scale(1.12)}.tbb:active{transform:scale(.92)}
+.tbb.tbup em{display:grid;place-items:center;width:46px;height:46px;margin-top:-18px;border-radius:50%;background:var(--blue);color:#fff;font-size:28px;font-weight:800;box-shadow:0 6px 16px color-mix(in srgb,var(--blue) 45%,transparent)}
+.tbdot{display:none;position:absolute;top:2px;left:calc(50% + 8px);width:10px;height:10px;border-radius:50%;background:#EF4444;border:2px solid var(--white)}.tbb.new .tbdot{display:block}
+html.phone #langSw{bottom:calc(84px + env(safe-area-inset-bottom));right:10px;padding:6px 10px;font-size:12px}
+html.phone.more #langSw{display:none}
+/* окна выезжают снизу, как в приложениях */
+html.phone .ovl{place-items:end center;padding:0}
+html.phone .ovl .mdl{width:100%;max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}
+html.phone .ovl.show .mdl{animation:sheetup .3s cubic-bezier(.2,.9,.3,1.05)}
+@keyframes sheetup{from{transform:translateY(60%);opacity:.3}to{transform:none;opacity:1}}
+/* видео во всю ширину */
+html.phone #p-watch .player{margin:0 -10px;border-radius:0}html.phone #p-watch .back{margin-bottom:6px}
+html.phone .wbtns{flex-wrap:wrap}
+/* мессенджер: список на весь экран, открытый чат — поверх всего, как в Telegram */
+html.phone .tg{grid-template-columns:1fr;height:calc(100vh - 250px);height:calc(100dvh - 250px);border-radius:16px}
+html.phone .tg.open .tgl{display:none}html.phone .tg:not(.open) .tgc{display:none}html.phone .tgback{display:block}
+html.phone .tg.open .tgc{position:fixed;inset:0;z-index:45;animation:tgslide .25s ease-out;padding-bottom:env(safe-area-inset-bottom)}
+html.phone .tghead{padding-top:calc(8px + env(safe-area-inset-top))}
+html.phone .tgbox{padding:8px 10px 12px}
+html.phone .frcard{padding:14px}html.phone .frwrap{grid-template-columns:minmax(0,1fr)}
+body:has(.ovl.show) #langSw,body:has(#stv.show) #langSw{display:none}

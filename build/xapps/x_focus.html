@@ -1,0 +1,49 @@
+<div class="c">
+  <h1 id="h"></h1>
+  <div class="seg" id="seg"></div>
+  <div class="ring"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" class="bg"/><circle cx="100" cy="100" r="90" class="fg" id="fg"/></svg><div><b id="t">25:00</b><small id="ph"></small></div></div>
+  <input id="task" maxlength="60">
+  <div class="row cc"><button id="rs"></button><button class="p big" id="go"></button><button id="sk"></button></div>
+  <div class="card stats"><div><b id="today">0</b><small id="tl"></small></div><div><b id="mins">0</b><small id="mlb"></small></div><div><b id="streak">0</b><small id="sl"></small></div></div>
+</div>
+<style>
+.seg{display:inline-flex;background:var(--line);border-radius:12px;padding:3px;margin-bottom:16px}
+.seg button{background:none;padding:8px 14px}
+.seg button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.ring{position:relative;width:min(280px,72vw);margin:0 auto 16px}
+.ring svg{width:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:10}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:#FF453A;stroke-linecap:round;stroke-dasharray:565.5;transition:stroke-dashoffset .5s linear,stroke .3s}
+.ring.rest .fg{stroke:#30D158}
+.ring>div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring b{font-size:56px;font-weight:300;font-variant-numeric:tabular-nums}
+.ring small{color:var(--mut)}
+#task{width:min(360px,90%);text-align:center;margin-bottom:10px}
+.cc{justify-content:center}
+.big{padding:14px 34px;border-radius:30px;font-size:19px}
+.stats{display:flex;justify-content:space-around;margin-top:18px}
+.stats b{display:block;font-size:26px}.stats small{color:var(--mut);font-size:13px}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);};
+var MODES={focus:[25,L('Фокус','Focus')],short:[5,L('Перерыв','Break')],long:[15,L('Длинный перерыв','Long break')]};
+var mode='focus',left=25*60,end=0,run=false,tick=0,st={days:{}},done=0;
+$('h').textContent=L('Фокус','Focus');$('task').placeholder=L('Над чем работаешь?','What are you working on?');
+$('rs').textContent='↺';$('sk').textContent='⏭';$('tl').textContent=L('сессий сегодня','sessions today');$('mlb').textContent=L('минут фокуса','focus minutes');$('sl').textContent=L('дней подряд','day streak');
+function day(d){d=d||new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function seg(){var s=$('seg');s.textContent='';Object.keys(MODES).forEach(function(k){var b=document.createElement('button');b.textContent=MODES[k][1];if(k===mode)b.className='on';b.onclick=function(){setMode(k);};s.append(b);});}
+function setMode(k){mode=k;run=false;clearInterval(tick);left=MODES[k][0]*60;seg();draw();document.querySelector('.ring').classList.toggle('rest',k!=='focus');}
+function draw(){var m=Math.floor(left/60),s=left%60;$('t').textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;$('ph').textContent=MODES[mode][1];
+  $('fg').style.strokeDashoffset=565.5*(1-left/(MODES[mode][0]*60));$('go').textContent=run?L('Пауза','Pause'):L('Старт','Start');}
+function stats(){var d=st.days[day()]||[0,0];$('today').textContent=d[0];$('mins').textContent=d[1];var n=0,x=new Date();while(st.days[day(x)]){n++;x.setDate(x.getDate()-1);}$('streak').textContent=n;}
+function beep(){try{var c=new (window.AudioContext||window.webkitAudioContext)();[0,.25,.5].forEach(function(t){var o=c.createOscillator(),g=c.createGain();o.frequency.value=880;g.gain.setValueAtTime(.3,c.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.2);o.connect(g).connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+.22);});}catch(e){}}
+function finish(){run=false;clearInterval(tick);beep();
+  if(mode==='focus'){var d=st.days[day()]||[0,0];d[0]++;d[1]+=MODES.focus[0];st.days[day()]=d;Horo.save('st',st);stats();done++;Horo.toast(L('Сессия готова! Отдохни.','Session complete! Take a break.'));setMode(done%4===0?'long':'short');}
+  else{Horo.toast(L('Перерыв окончен — за работу!','Break is over, back to work!'));setMode('focus');}}
+$('go').onclick=function(){run=!run;if(run){end=Date.now()+left*1000;tick=setInterval(function(){left=Math.max(0,Math.round((end-Date.now())/1000));draw();if(!left)finish();},250);}else clearInterval(tick);draw();};
+$('rs').onclick=function(){setMode(mode);};$('sk').onclick=function(){left=0;finish();};
+$('task').oninput=function(){Horo.save('task',this.value);};
+Horo.load('st').then(function(s){if(s&&s.days)st=s;stats();});Horo.load('task').then(function(t){if(t)$('task').value=t;});
+seg();draw();
+</script>

@@ -1,0 +1,39 @@
+<h1 id="h"></h1>
+<div class="card pick"><input type="color" id="c" value="#0A84FF"><div><b id="hex"></b><small id="rgb"></small><small id="hsl"></small></div><button id="fav">☆</button></div>
+<div class="seg" id="sch"></div>
+<div class="pal" id="pal"></div>
+<h3 id="fh"></h3>
+<div class="favs" id="favs"></div>
+<p class="mut" id="tip"></p>
+<style>
+.pick{display:flex;align-items:center;gap:14px}
+.pick input{width:84px;height:84px;border:0;padding:0;border-radius:20px;background:none;cursor:pointer}
+.pick div{flex:1}.pick b{display:block;font-size:26px}.pick small{display:block;color:var(--mut)}
+#fav{font-size:24px;background:none}
+.seg{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;scrollbar-width:none}
+.seg button{white-space:nowrap}.seg button.on{background:var(--acc);color:#fff}
+.pal{display:flex;height:150px;border-radius:22px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.pal div{flex:1;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px;font:700 12px ui-monospace,monospace;cursor:pointer;transition:flex .3s}
+.pal div:hover{flex:1.6}
+.favs{display:flex;flex-wrap:wrap;gap:10px}
+.favs button{width:48px;height:48px;border-radius:14px;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},sch='comp',F=[];
+$('h').textContent=L('Палитра','Palette');$('fh').textContent=L('Избранные цвета','Favourite colours');$('tip').textContent=L('Нажми на цвет в палитре, чтобы выбрать его.','Tap a colour in the palette to pick it.');
+function hex2rgb(h){var n=parseInt(h.slice(1),16);return [n>>16,n>>8&255,n&255];}
+function rgb2hsl(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),h,s,l=(mx+mn)/2;if(mx===mn)h=s=0;else{var d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;}return [Math.round(h),Math.round(s*100),Math.round(l*100)];}
+function hsl2hex(h,s,l){h=((h%360)+360)%360;s/=100;l/=100;var k=function(n){return (n+h/30)%12;},a=s*Math.min(l,1-l),f=function(n){return Math.round(255*(l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1))));};return '#'+[f(0),f(8),f(4)].map(function(x){return ('0'+x.toString(16)).slice(-2);}).join('').toUpperCase();}
+var SCH={comp:[L('Контраст','Complementary'),function(h,s,l){return [[h,s,l],[h,s,Math.min(90,l+20)],[h+180,s,l],[h+180,s,Math.max(15,l-20)],[h,Math.max(10,s-40),95]];}],
+  ana:[L('Соседние','Analogous'),function(h,s,l){return [[h-40,s,l],[h-20,s,l],[h,s,l],[h+20,s,l],[h+40,s,l]];}],
+  tri:[L('Триада','Triad'),function(h,s,l){return [[h,s,l],[h+120,s,l],[h+240,s,l],[h+120,s,Math.min(92,l+25)],[h+240,s,Math.max(12,l-25)]];}],
+  mono:[L('Оттенки','Shades'),function(h,s,l){return [15,30,45,65,85].map(function(x){return [h,s,x];});}]};
+function seg(){var e=$('sch');e.textContent='';Object.keys(SCH).forEach(function(k){var b=document.createElement('button');b.textContent=SCH[k][0];if(k===sch)b.className='on';b.onclick=function(){sch=k;seg();draw();};e.append(b);});}
+function draw(){var h=$('c').value.toUpperCase(),rgb=hex2rgb(h),hs=rgb2hsl(rgb[0],rgb[1],rgb[2]);$('hex').textContent=h;$('rgb').textContent='RGB '+rgb.join(', ');$('hsl').textContent='HSL '+hs[0]+'°, '+hs[1]+'%, '+hs[2]+'%';
+  $('fav').textContent=F.indexOf(h)>=0?'★':'☆';var p=$('pal');p.textContent='';
+  SCH[sch][1](hs[0],hs[1],hs[2]).forEach(function(x){var c=hsl2hex(x[0],x[1],x[2]),d=document.createElement('div');d.style.background=c;d.style.color=x[2]>60?'#000':'#fff';d.textContent=c;d.onclick=function(){$('c').value=c;draw();};p.append(d);});
+  var fv=$('favs');fv.textContent='';F.forEach(function(c){var b=document.createElement('button');b.style.background=c;b.title=c;b.onclick=function(){$('c').value=c;draw();};fv.append(b);});}
+$('c').oninput=draw;
+$('fav').onclick=function(){var h=$('c').value.toUpperCase(),i=F.indexOf(h);if(i>=0)F.splice(i,1);else F.unshift(h);F=F.slice(0,30);Horo.save('f',F);draw();};
+Horo.load('f').then(function(f){if(Array.isArray(f))F=f;seg();draw();});
+</script>

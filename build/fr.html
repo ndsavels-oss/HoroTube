@@ -1,0 +1,25 @@
+<section class="main page" id="p-friends">
+  <h2 class="title">Друзья</h2>
+  <div class="lock" id="frGuest" style="display:none"><b>🤝</b><strong>Друзья</strong><p>Войди в аккаунт, чтобы добавлять друзей по QR-коду.</p><button class="frbig" id="frLogin">Войти</button></div>
+  <div id="frBox">
+    <div class="frwrap">
+      <div class="frcard">
+        <b>Мой QR-код</b>
+        <div class="frqr"><canvas id="frQr" width="220" height="220" aria-label="Мой QR-код друга"></canvas></div>
+        <div class="frcode" id="frCode">…</div>
+        <p class="avhint">Друг наводит камеру телефона на код — и вы сразу друзья. За каждого нового друга +1 🪙 вам обоим.</p>
+        <div class="frbtns"><button class="tab" id="frShare">🔗 Отправить ссылку</button><button class="tab" id="frNew">🔄 Новый код</button></div>
+      </div>
+      <div class="frcard">
+        <b>Добавить друга</b>
+        <button class="frbig" id="frScanBtn">📷 Сканировать QR-код</button>
+        <div id="frScan" style="display:none"><video id="frVid" playsinline muted></video><div class="frframe"></div><button class="tab on" id="frStop">Закрыть камеру</button></div>
+        <label class="tab frfile">🖼 Фото QR-кода<input type="file" id="frPhoto" accept="image/*"></label>
+        <div class="frin"><input id="frIn" maxlength="12" placeholder="Код друга" autocomplete="off" aria-label="Код друга"><button class="tab on" id="frAdd">Добавить</button></div>
+        <p id="frMsg" class="bad"></p>
+        <h3 class="ctitle">Мои друзья<span id="frCnt"></span></h3>
+        <div id="frList" class="frlist"></div>
+      </div>
+    </div>
+  </div>
+</section>

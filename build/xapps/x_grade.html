@@ -1,0 +1,42 @@
+<h1 id="h"></h1>
+<div class="card tot"><div><small id="tl"></small><b id="tot">—</b></div><select id="scale"></select></div>
+<div id="list"></div>
+<div class="row"><input id="sn" maxlength="30"><button class="p" id="sa">＋</button></div>
+<style>
+.tot{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#0A84FF,#5E5CE6);color:#fff}
+.tot small{opacity:.85}.tot b{display:block;font-size:44px;font-weight:800}
+.tot select{width:auto;background:rgba(255,255,255,.2);color:#fff;border:0}
+.sb{background:var(--card);border-radius:18px;padding:12px 14px;margin-bottom:10px}
+.sh{display:flex;align-items:center;gap:8px}
+.sh b{flex:1;font-size:17px}.sh em{font-style:normal;font-weight:800;font-size:20px;min-width:44px;text-align:right}
+.sh button{background:none;color:var(--mut);padding:2px 6px}
+.gr{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}
+.gr span{min-width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800;cursor:pointer;padding:0 6px;animation:pp .25s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pp{from{transform:scale(0)}}
+.keys{display:flex;flex-wrap:wrap;gap:5px}
+.keys button{padding:6px 10px;min-width:34px;font-weight:700}
+.need{font-size:13px;color:var(--mut);margin-top:6px}
+.row input{flex:1}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},D={scale:10,s:[]};
+$('h').textContent=L('Средний балл','Grade Average');$('tl').textContent=L('Общий средний балл','Overall average');$('sn').placeholder=L('Новый предмет','New subject');
+[[10,L('Шкала 1–10','Scale 1–10')],[5,L('Шкала 1–5','Scale 1–5')]].forEach(function(x){var o=document.createElement('option');o.value=x[0];o.textContent=x[1];$('scale').append(o);});
+function avg(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;}
+function col(v){var r=v/D.scale;return r>=.85?'#30D158':r>=.65?'#0A84FF':r>=.45?'#FF9F0A':'#FF453A';}
+function f(v){return v===null?'—':(Math.round(v*100)/100).toFixed(2).replace('.',HL==='en'?'.':',');}
+function save(){Horo.save('d',D);}
+function need(g){var a=avg(g);if(a===null)return '';var tgt=Math.ceil(a)+(Math.ceil(a)===a?1:0);if(tgt>D.scale)return L('Максимум! 🏆','Top marks! 🏆');var n=0,s=g.reduce(function(x,y){return x+y;},0),c=g.length;while((s+D.scale*n)/(c+n)<tgt-.5&&n<50)n++;return n?L('Чтобы выйти на ','To reach ')+tgt+L(', нужно ещё ',', you need ')+n+' × '+D.scale:'';}
+function draw(){$('scale').value=D.scale;var l=$('list');l.textContent='';var all=[];
+  D.s.forEach(function(s,i){var a=avg(s.g);if(a!==null)all.push(a);var c=document.createElement('div');c.className='sb';
+    var h=document.createElement('div');h.className='sh';var b=document.createElement('b');b.textContent=s.n;var e=document.createElement('em');e.textContent=f(a);if(a!==null)e.style.color=col(a);var x=document.createElement('button');x.textContent='✕';x.onclick=function(){D.s.splice(i,1);save();draw();};h.append(b,e,x);
+    var gr=document.createElement('div');gr.className='gr';s.g.forEach(function(v,j){var sp=document.createElement('span');sp.textContent=v;sp.style.background=col(v);sp.title=L('Нажми, чтобы удалить','Tap to remove');sp.onclick=function(){s.g.splice(j,1);save();draw();};gr.append(sp);});
+    var k=document.createElement('div');k.className='keys';for(var v=1;v<=D.scale;v++){(function(v){var bt=document.createElement('button');bt.textContent=v;bt.onclick=function(){s.g.push(v);save();draw();};k.append(bt);})(v);}
+    var nd=document.createElement('div');nd.className='need';nd.textContent=need(s.g);
+    c.append(h,gr,k,nd);l.append(c);});
+  $('tot').textContent=f(avg(all));}
+$('scale').onchange=function(){D.scale=+this.value;D.s.forEach(function(s){s.g=s.g.filter(function(v){return v<=D.scale;});});save();draw();};
+$('sa').onclick=function(){var n=$('sn').value.trim();if(!n)return;D.s.push({n:n,g:[]});$('sn').value='';save();draw();};
+$('sn').onkeydown=function(e){if(e.key==='Enter')$('sa').click();};
+Horo.load('d').then(function(d){if(d&&d.s)D=d;else D.s=[{n:L('Математика','Maths'),g:[]},{n:L('Английский','English'),g:[]}];draw();});
+</script>

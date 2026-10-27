@@ -1,0 +1,43 @@
+<div class="c">
+  <h1 id="h"></h1>
+  <div class="bpm"><b id="bpm">100</b><small>BPM</small></div>
+  <div class="tempo" id="tn"></div>
+  <input type="range" id="sl" min="40" max="220" value="100">
+  <div class="row cc"><button id="m5">−5</button><button id="m1">−1</button><button id="p1">+1</button><button id="p5">+5</button></div>
+  <div class="dots" id="dots"></div>
+  <div class="row cc"><span class="mut" id="ml"></span><select id="beats"><option>2</option><option>3</option><option selected>4</option><option>6</option></select></div>
+  <button class="p big" id="go"></button>
+  <button id="tap"></button>
+</div>
+<style>
+.cc{justify-content:center;margin:10px 0}
+.bpm b{font-size:84px;font-weight:200;font-variant-numeric:tabular-nums}
+.bpm small{display:block;color:var(--mut);margin-top:-10px}
+.tempo{color:var(--acc);font-weight:600;margin:6px 0 10px}
+input[type=range]{width:min(420px,90%);accent-color:var(--acc)}
+.dots{display:flex;justify-content:center;gap:14px;margin:22px 0}
+.dots i{width:26px;height:26px;border-radius:50%;background:var(--line);transition:transform .08s,background .08s}
+.dots i.on{background:var(--acc);transform:scale(1.35)}
+.dots i.on.first{background:#FF9500}
+.big{font-size:20px;padding:14px 40px;border-radius:30px;margin:8px}
+#tap{display:block;margin:10px auto}
+</style>
+<script>
+var bpm=100,beats=4,run=false,ctx=null,next=0,beat=0,timer=0,taps=[];
+var $=function(i){return document.getElementById(i);};
+$('h').textContent=L('Метроном','Metronome');$('ml').textContent=L('Долей в такте:','Beats per bar:');$('tap').textContent=L('👆 Задать темп касанием','👆 Tap tempo');
+function name(b){return b<60?'Largo':b<76?'Adagio':b<108?'Andante':b<120?'Moderato':b<156?'Allegro':b<176?'Vivace':'Presto';}
+function set(b){bpm=Math.max(40,Math.min(220,Math.round(b)));$('bpm').textContent=bpm;$('sl').value=bpm;$('tn').textContent=name(bpm);Horo.save('bpm',bpm);}
+function dots(){var d=$('dots');d.textContent='';for(var i=0;i<beats;i++)d.append(document.createElement('i'));}
+function click(t,first){var o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=first?1500:1000;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.6,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.06);o.connect(g).connect(ctx.destination);o.start(t);o.stop(t+.07);}
+function sched(){while(next<ctx.currentTime+.12){var b=beat,first=b===0;click(next,first);var d=(next-ctx.currentTime)*1000;setTimeout(function(){var ds=$('dots').children;for(var i=0;i<ds.length;i++)ds[i].className=i===b?'on'+(b===0?' first':''):'';},Math.max(0,d));next+=60/bpm;beat=(beat+1)%beats;}}
+function toggle(){run=!run;$('go').textContent=run?L('■ Стоп','■ Stop'):L('▶ Старт','▶ Start');
+  if(run){ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();ctx.resume();next=ctx.currentTime+.05;beat=0;timer=setInterval(sched,25);}else{clearInterval(timer);[].forEach.call($('dots').children,function(x){x.className='';});}}
+$('go').onclick=toggle;$('sl').oninput=function(){set(+this.value);};
+[['m5',-5],['m1',-1],['p1',1],['p5',5]].forEach(function(x){$(x[0]).onclick=function(){set(bpm+x[1]);};});
+$('beats').onchange=function(){beats=+this.value;beat=0;dots();};
+$('tap').onclick=function(){var n=Date.now();taps=taps.filter(function(t){return n-t<3000;});taps.push(n);if(taps.length>1){var s=0;for(var i=1;i<taps.length;i++)s+=taps[i]-taps[i-1];set(60000/(s/(taps.length-1)));}};
+addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault();toggle();}});
+dots();$('go').textContent=L('▶ Старт','▶ Start');
+Horo.load('bpm').then(function(b){set(b||100);});
+</script>

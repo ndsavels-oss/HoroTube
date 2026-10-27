@@ -1,0 +1,35 @@
+<h1 id="h"></h1>
+<div class="card new">
+  <p class="mut" id="q"></p>
+  <div class="moods" id="moods"></div>
+  <textarea id="t" rows="4" maxlength="2000"></textarea>
+  <button class="p" id="save"></button>
+</div>
+<div class="week" id="week"></div>
+<div id="list"></div>
+<style>
+.moods{display:flex;gap:6px;margin:8px 0}
+.moods button{font-size:28px;background:none;padding:4px 6px;border-radius:14px;transition:transform .2s}
+.moods button.on{background:var(--line);transform:scale(1.18)}
+textarea{width:100%}
+.new .p{margin-top:8px;width:100%}
+.week{display:flex;justify-content:space-between;background:var(--card);border-radius:18px;padding:10px 14px;margin-bottom:12px}
+.week div{text-align:center;font-size:12px;color:var(--mut)}.week b{display:block;font-size:24px}
+.en{background:var(--card);border-radius:18px;padding:12px 14px;margin-bottom:10px;animation:in .35s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.en .eh{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:13px}
+.en .eh span{font-size:22px}.en .eh button{margin-left:auto;background:none;color:var(--mut);padding:2px 6px}
+.en p{margin:8px 0 0;white-space:pre-wrap;line-height:1.45}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},E=[],mood='🙂';
+var M=['😄','🙂','😐','😕','😢','😡','🤩','😴'];
+var Q=HL==='en'?['What made you smile today?','What did you learn today?','What are you proud of?','What would you do differently?','Who helped you today?']:['Что сегодня порадовало?','Что нового узнал сегодня?','Чем ты гордишься?','Что сделал бы иначе?','Кто тебе сегодня помог?'];
+$('h').textContent=L('Дневник','Journal');$('q').textContent=Q[new Date().getDate()%Q.length];$('t').placeholder=L('Пиши, что на душе. Это видишь только ты.','Write what is on your mind. Only you can see it.');$('save').textContent=L('Записать','Save entry');
+function moods(){var m=$('moods');m.textContent='';M.forEach(function(x){var b=document.createElement('button');b.textContent=x;if(x===mood)b.className='on';b.onclick=function(){mood=x;moods();};m.append(b);});}
+function key(d){return d.toDateString();}
+function draw(){var w=$('week');w.textContent='';for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var e=E.filter(function(x){return key(new Date(x.d))===key(d);})[0];var c=document.createElement('div'),b=document.createElement('b');b.textContent=e?e.m:'·';c.append(b,document.createTextNode(d.toLocaleDateString(HL==='en'?'en-GB':'ru-RU',{weekday:'short'})));w.append(c);}
+  var l=$('list');l.textContent='';E.forEach(function(e,i){var c=document.createElement('div');c.className='en';var h=document.createElement('div');h.className='eh';var s=document.createElement('span');s.textContent=e.m;var dt=document.createElement('small');dt.textContent=new Date(e.d).toLocaleString(HL==='en'?'en-GB':'ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});var x=document.createElement('button');x.textContent='✕';x.onclick=function(){E.splice(i,1);Horo.save('e',E);draw();};h.append(s,dt,x);var p=document.createElement('p');p.textContent=e.t;c.append(h,p);l.append(c);});}
+$('save').onclick=function(){var t=$('t').value.trim();if(!t)return;E.unshift({d:Date.now(),m:mood,t:t});E=E.slice(0,300);Horo.save('e',E);$('t').value='';draw();Horo.toast(L('Записано','Saved'));};
+Horo.load('e').then(function(e){if(Array.isArray(e))E=e;moods();draw();});
+</script>

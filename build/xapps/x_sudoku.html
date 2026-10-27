@@ -1,0 +1,61 @@
+<div class="c">
+  <div class="seg" id="lv"></div>
+  <div class="row hd"><span id="err"></span><b id="tm">0:00</b></div>
+  <div id="g"></div>
+  <div class="pad" id="pad"></div>
+  <div class="row cc"><button id="undo"></button><button id="erase"></button><button id="note"></button><button id="hint"></button></div>
+</div>
+<style>
+.seg{display:inline-flex;background:var(--line);border-radius:12px;padding:3px;margin-bottom:10px}
+.seg button{background:none;padding:8px 12px}.seg button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.hd{justify-content:space-between;width:min(450px,94vw);margin:0 auto 8px;color:var(--mut)}
+#g{display:grid;grid-template-columns:repeat(9,1fr);width:min(450px,94vw);aspect-ratio:1;margin:0 auto;background:var(--card);border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+#g div{display:flex;align-items:center;justify-content:center;font-size:clamp(16px,5.4vw,26px);border-right:1px solid var(--line);border-bottom:1px solid var(--line);cursor:pointer;position:relative;color:#0A5BD7;transition:background .12s}
+#g div.giv{color:var(--ink);font-weight:700}
+#g div:nth-child(9n+3),#g div:nth-child(9n+6){border-right:2px solid var(--ink)}
+#g div:nth-child(n+19):nth-child(-n+27),#g div:nth-child(n+46):nth-child(-n+54){border-bottom:2px solid var(--ink)}
+#g div.rel{background:color-mix(in srgb,var(--acc) 8%,transparent)}
+#g div.same{background:color-mix(in srgb,var(--acc) 22%,transparent)}
+#g div.sel{background:color-mix(in srgb,var(--acc) 35%,transparent)}
+#g div.bad{color:#FF3B30}
+#g div.win{animation:w .6s ease both}
+@keyframes w{50%{transform:scale(1.2);background:#30D158;color:#fff}}
+#g div small{position:absolute;inset:2px;display:grid;grid-template-columns:repeat(3,1fr);font-size:clamp(7px,2vw,10px);color:var(--mut);line-height:1}
+#g div small i{font-style:normal;display:flex;align-items:center;justify-content:center}
+.pad{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;width:min(450px,94vw);margin:12px auto}
+.pad button{padding:12px 0;font-size:22px;font-weight:600;color:var(--acc);background:var(--card)}
+.pad button.done{opacity:.25}
+.cc{justify-content:center}.cc button.on{background:var(--acc);color:#fff}
+</style>
+<script>
+var $=function(i){return document.getElementById(i);},S,P,G,N,sel=-1,mist=0,t0,tick,lv='easy',noteMode=false,hist=[];
+var LV={easy:[40,L('Лёгкий','Easy')],mid:[50,L('Средний','Medium')],hard:[56,L('Сложный','Hard')]};
+$('undo').textContent=L('↩ Отмена','↩ Undo');$('erase').textContent=L('⌫ Стереть','⌫ Erase');$('note').textContent=L('✎ Заметки','✎ Notes');$('hint').textContent=L('💡 Подсказка','💡 Hint');
+function ok(b,i,v){var r=i/9|0,c=i%9,br=r-r%3,bc=c-c%3;for(var k=0;k<9;k++){if(b[r*9+k]===v||b[k*9+c]===v||b[(br+(k/3|0))*9+bc+k%3]===v)return false;}return true;}
+function fill(b){var i=b.indexOf(0);if(i<0)return true;var ns=[1,2,3,4,5,6,7,8,9].sort(function(){return Math.random()-.5;});for(var k=0;k<9;k++){if(ok(b,i,ns[k])){b[i]=ns[k];if(fill(b))return true;b[i]=0;}}return false;}
+function count(b,lim){var i=b.indexOf(0);if(i<0)return 1;var n=0;for(var v=1;v<=9&&n<lim;v++)if(ok(b,i,v)){b[i]=v;n+=count(b,lim-n);b[i]=0;}return n;}
+function gen(){S=new Array(81).fill(0);fill(S);P=S.slice();var idx=[...Array(81).keys()].sort(function(){return Math.random()-.5;}),rm=0;
+  for(var k=0;k<81&&rm<LV[lv][0];k++){var i=idx[k],v=P[i];P[i]=0;if(count(P.slice(),2)!==1)P[i]=v;else rm++;}
+  G=P.slice();N=G.map(function(){return [];});mist=0;sel=-1;hist=[];t0=Date.now();clearInterval(tick);tick=setInterval(time,1000);save();draw();}
+function time(){var s=Math.floor((Date.now()-t0)/1000);$('tm').textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2);}
+function save(){Horo.save('g',{S:S,P:P,G:G,N:N,m:mist,t:Date.now()-t0,lv:lv});}
+function seg(){var s=$('lv');s.textContent='';Object.keys(LV).forEach(function(k){var b=document.createElement('button');b.textContent=LV[k][1];if(k===lv)b.className='on';b.onclick=function(){lv=k;seg();gen();};s.append(b);});}
+function draw(){var g=$('g');g.textContent='';var sv=sel>=0?G[sel]:0;
+  G.forEach(function(v,i){var d=document.createElement('div');if(P[i])d.className='giv';
+    if(sel>=0){var r=i/9|0,c=i%9,sr=sel/9|0,sc=sel%9;if(i===sel)d.classList.add('sel');else if(sv&&v===sv)d.classList.add('same');else if(r===sr||c===sc||((r/3|0)===(sr/3|0)&&(c/3|0)===(sc/3|0)))d.classList.add('rel');}
+    if(v){d.textContent=v;if(!P[i]&&v!==S[i])d.classList.add('bad');}else if(N[i].length){var sm=document.createElement('small');for(var k=1;k<=9;k++){var ii=document.createElement('i');ii.textContent=N[i].indexOf(k)>=0?k:'';sm.append(ii);}d.append(sm);}
+    d.onclick=function(){sel=i;draw();};g.append(d);});
+  var p=$('pad');p.textContent='';for(var n=1;n<=9;n++){(function(n){var b=document.createElement('button');b.textContent=n;if(G.filter(function(x,i){return x===n&&x===S[i];}).length>=9)b.className='done';b.onclick=function(){put(n);};p.append(b);})(n);}
+  $('err').textContent=L('Ошибок: ','Mistakes: ')+mist+'/3';$('note').classList.toggle('on',noteMode);}
+function put(n){if(sel<0||P[sel])return;hist.push([sel,G[sel],N[sel].slice()]);
+  if(noteMode){var a=N[sel],k=a.indexOf(n);if(k>=0)a.splice(k,1);else a.push(n);G[sel]=0;}
+  else{G[sel]=n;N[sel]=[];if(n!==S[sel]){mist++;if(mist>=3){Horo.toast(L('Три ошибки — новая игра','Three mistakes, new game'));setTimeout(gen,900);}}}
+  save();draw();
+  if(G.every(function(v,i){return v===S[i];})){clearInterval(tick);[].forEach.call($('g').children,function(d,i){d.style.animationDelay=((i%9+(i/9|0))*30)+'ms';d.classList.add('win');});Horo.toast(L('Судоку решено за ','Solved in ')+$('tm').textContent+'!');}}
+$('undo').onclick=function(){var h=hist.pop();if(!h)return;G[h[0]]=h[1];N[h[0]]=h[2];sel=h[0];save();draw();};
+$('erase').onclick=function(){if(sel<0||P[sel])return;hist.push([sel,G[sel],N[sel].slice()]);G[sel]=0;N[sel]=[];save();draw();};
+$('note').onclick=function(){noteMode=!noteMode;draw();};
+$('hint').onclick=function(){var e=[];G.forEach(function(v,i){if(v!==S[i])e.push(i);});if(!e.length)return;sel=sel>=0&&G[sel]!==S[sel]?sel:e[Math.random()*e.length|0];var nm=noteMode;noteMode=false;put(S[sel]);noteMode=nm;};
+addEventListener('keydown',function(e){if(/^[1-9]$/.test(e.key))put(+e.key);else if(e.key==='Backspace'||e.key==='Delete')$('erase').click();else if(sel>=0){var m={ArrowUp:-9,ArrowDown:9,ArrowLeft:-1,ArrowRight:1}[e.key];if(m){e.preventDefault();sel=(sel+m+81)%81;draw();}}});
+Horo.load('g').then(function(s){seg();if(s&&s.S&&s.G.some(function(v,i){return v!==s.S[i];})){S=s.S;P=s.P;G=s.G;N=s.N;mist=s.m;lv=s.lv||lv;seg();t0=Date.now()-(s.t||0);tick=setInterval(time,1000);draw();}else gen();});
+</script>

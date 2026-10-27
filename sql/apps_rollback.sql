@@ -1,0 +1,35 @@
+-- Откат apps.sql: убирает Галерею, Портфолио, Календарь, Почту и свои приложения вместе с данными.
+-- Файлы в хранилище gallery удалите в Supabase -> Storage вручную (или оставьте).
+drop table if exists public.ht_mail;
+drop table if exists public.ht_app_installs;
+drop table if exists public.ht_user_apps;
+drop table if exists public.ht_gallery;
+drop table if exists public.ht_portfolio;
+drop table if exists public.ht_events;
+drop function if exists public.ht_guard_gallery();
+drop function if exists public.ht_guard_portfolio();
+drop function if exists public.ht_guard_events();
+drop function if exists public.ht_portfolio_stats(uuid);
+drop function if exists public.ht_can_see_portfolio(uuid, text);
+drop policy if exists ht_gallery_sel on storage.objects;
+drop policy if exists ht_gallery_ins on storage.objects;
+drop policy if exists ht_gallery_del on storage.objects;
+drop function if exists public.ht_guard_user_apps();
+drop function if exists public.ht_guard_mail();
+drop function if exists public.ht_store_apps();
+drop function if exists public.ht_install_app(bigint);
+drop function if exists public.ht_is_staff_id(uuid);
+drop function if exists public.ht_mail_mark(bigint, text);
+drop function if exists public.ht_mail_people();
+drop function if exists public.ht_review_app(bigint, boolean, text);
+drop function if exists public.ht_unlist_app(bigint);
+drop function if exists public.ht_buy_app(text);
+drop function if exists public.ht_app_price(text);
+drop table if exists public.ht_app_buys;
+drop function if exists public.ht_buy_user_app(bigint);
+alter table if exists public.ht_user_apps drop column if exists price, drop column if exists pub_price;
+alter table if exists public.ht_mail drop column if exists app_price;
+drop policy if exists ht_mailf_sel on storage.objects;
+drop policy if exists ht_mailf_ins on storage.objects;
+drop function if exists public.ht_mail_file_ok(text);
+alter table if exists public.ht_mail drop column if exists from_trash, drop column if exists to_trash, drop column if exists files;

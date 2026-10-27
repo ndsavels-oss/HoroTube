@@ -1,0 +1,241 @@
+<!-- Викторина HoroTube: вставь весь этот код в Студию кода и нажми «Запустить» -->
+<div id="app">
+  <div id="home" class="scr">
+    <h1>🧠 Викторина</h1>
+    <p class="sub">Выбери предмет. 10 вопросов, 15 секунд на каждый.</p>
+    <div id="subs" class="grid"></div>
+    <button id="toEdit" class="ghost">✏️ Мои вопросы</button>
+  </div>
+  <div id="game" class="scr" hidden>
+    <div class="top"><button id="quit" class="ghost sm">✕</button><span id="prog"></span><b id="score">0</b></div>
+    <div class="bar"><i id="time"></i></div>
+    <h2 id="q"></h2>
+    <div id="opts" class="opts"></div>
+    <p id="streak" class="sub"></p>
+  </div>
+  <div id="end" class="scr" hidden>
+    <div id="medal" class="medal"></div>
+    <h1 id="res"></h1>
+    <p id="resSub" class="sub"></p>
+    <div id="review" class="review"></div>
+    <button id="again" class="main">Ещё раз</button>
+    <button id="toHome" class="ghost">К предметам</button>
+  </div>
+  <div id="edit" class="scr" hidden>
+    <div class="top"><button id="back" class="ghost sm">‹</button><b>Мои вопросы</b><span></span></div>
+    <p class="sub">Первый вариант ответа — правильный, в игре варианты перемешаются.</p>
+    <input id="eq" placeholder="Вопрос" maxlength="140">
+    <input id="ea" placeholder="Правильный ответ" maxlength="40">
+    <input id="eb" placeholder="Неправильный ответ" maxlength="40">
+    <input id="ec" placeholder="Ещё неправильный" maxlength="40">
+    <input id="ed" placeholder="И ещё один" maxlength="40">
+    <button id="add" class="main">Добавить</button>
+    <div id="mine" class="review"></div>
+  </div>
+</div>
+
+<style>
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; padding: 16px; font-family: -apple-system, system-ui, sans-serif; background: linear-gradient(160deg, #EEF4FF, #F8EEFF); color: #1C1C2E; min-height: 100vh; }
+  #app { max-width: 520px; margin: 0 auto; }
+  h1 { margin: 8px 0 4px; font-size: 30px; }
+  h2 { font-size: 22px; min-height: 64px; margin: 18px 0; line-height: 1.3; }
+  .sub { color: #6B6B80; margin: 4px 0 16px; }
+  .scr { animation: in .35s ease; }
+  @keyframes in { from { opacity: 0; transform: translateY(12px); } }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .sub-card { border: 0; border-radius: 20px; padding: 18px 14px; color: #fff; text-align: left; font: inherit; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,.12); transition: transform .15s; }
+  .sub-card:active { transform: scale(.96); }
+  .sub-card b { display: block; font-size: 17px; margin-top: 6px; }
+  .sub-card small { opacity: .85; }
+  .sub-card span { font-size: 30px; }
+  button { font: inherit; cursor: pointer; }
+  .main { width: 100%; border: 0; border-radius: 16px; padding: 14px; font-weight: 700; font-size: 17px; background: #5B5BF7; color: #fff; margin-top: 10px; }
+  .ghost { width: 100%; border: 0; border-radius: 16px; padding: 12px; background: rgba(91,91,247,.1); color: #5B5BF7; font-weight: 600; margin-top: 10px; }
+  .ghost.sm { width: auto; margin: 0; padding: 6px 12px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .top b { font-size: 20px; }
+  .bar { height: 8px; background: rgba(0,0,0,.08); border-radius: 4px; margin-top: 12px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #34C759, #FFD60A, #FF453A); background-size: 300% 100%; border-radius: 4px; }
+  .opts { display: grid; gap: 10px; }
+  .opt { border: 2px solid transparent; border-radius: 16px; padding: 14px 16px; background: #fff; text-align: left; font-size: 17px; box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: transform .12s, background .2s; }
+  .opt:active { transform: scale(.98); }
+  .opt.ok { background: #34C759; color: #fff; }
+  .opt.no { background: #FF453A; color: #fff; animation: shake .35s; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .medal { font-size: 84px; text-align: center; animation: pop .6s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes pop { from { transform: scale(0) rotate(-30deg); } }
+  #end h1, #end .sub { text-align: center; }
+  .review { margin-top: 14px; display: grid; gap: 8px; }
+  .rv { background: #fff; border-radius: 14px; padding: 10px 12px; font-size: 14px; }
+  .rv b { color: #34C759; } .rv.bad b { color: #FF453A; }
+  .rv button { float: right; border: 0; background: none; color: #FF453A; }
+  input { width: 100%; border: 1px solid #DCDCEB; border-radius: 12px; padding: 12px; font: inherit; margin-top: 8px; background: #fff; }
+</style>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const SUBJECTS = {
+    math:  { name: 'Математика', icon: '➗', color: '#5B5BF7,#3A2FD0' },
+    eng:   { name: 'English',    icon: '🇬🇧', color: '#20C997,#087F5B' },
+    geo:   { name: 'География',  icon: '🌍', color: '#4DABF7,#1864AB' },
+    sci:   { name: 'Природа',    icon: '🔬', color: '#FFA94D,#E8590C' },
+    hist:  { name: 'История',    icon: '🏛', color: '#C8A27A,#6B4A2B' },
+    mine:  { name: 'Мои вопросы', icon: '⭐', color: '#FF6B9A,#C2255C' }
+  };
+  // [вопрос, правильный, неправильный, неправильный, неправильный]
+  const BANK = {
+    eng: [
+      ['Как по-английски «яблоко»?', 'apple', 'orange', 'pear', 'plum'],
+      ['Переведи: «I am happy»', 'Я счастлив', 'Я голоден', 'Я устал', 'Я дома'],
+      ['Прошедшее время от «go»', 'went', 'goed', 'gone', 'goes'],
+      ['Как по-английски «пятница»?', 'Friday', 'Monday', 'Sunday', 'Tuesday'],
+      ['Множественное число «child»', 'children', 'childs', 'childes', 'childrens'],
+      ['«Library» — это…', 'библиотека', 'лаборатория', 'книжный магазин', 'урок'],
+      ['Выбери правильно: She ___ a student.', 'is', 'are', 'am', 'be'],
+      ['Противоположность «cold»', 'hot', 'cool', 'warm', 'wet'],
+      ['Как по-английски «зелёный»?', 'green', 'grey', 'gray', 'grow'],
+      ['«Homework» — это…', 'домашнее задание', 'дом', 'работа', 'урок'],
+      ['Сколько будет «twelve»?', '12', '20', '2', '11'],
+      ['Прошедшее время от «see»', 'saw', 'seed', 'seen', 'sees']
+    ],
+    geo: [
+      ['Самая длинная река в мире', 'Нил', 'Волга', 'Дунай', 'Миссисипи'],
+      ['Столица Франции', 'Париж', 'Лион', 'Рим', 'Мадрид'],
+      ['Самый большой океан', 'Тихий', 'Атлантический', 'Индийский', 'Северный Ледовитый'],
+      ['Самая высокая гора', 'Эверест', 'Эльбрус', 'Монблан', 'Килиманджаро'],
+      ['Столица Латвии', 'Рига', 'Таллин', 'Вильнюс', 'Хельсинки'],
+      ['Самая большая страна по площади', 'Россия', 'Канада', 'Китай', 'США'],
+      ['На каком материке Египет?', 'Африка', 'Азия', 'Европа', 'Австралия'],
+      ['Самая большая пустыня (жаркая)', 'Сахара', 'Гоби', 'Калахари', 'Атакама'],
+      ['Столица Японии', 'Токио', 'Киото', 'Осака', 'Пекин'],
+      ['Сколько всего материков?', '6', '5', '7', '8'],
+      ['Какое море омывает Латвию?', 'Балтийское', 'Чёрное', 'Северное', 'Средиземное'],
+      ['Столица Италии', 'Рим', 'Милан', 'Венеция', 'Неаполь']
+    ],
+    sci: [
+      ['Какая планета ближе всего к Солнцу?', 'Меркурий', 'Венера', 'Марс', 'Земля'],
+      ['Сколько ног у паука?', '8', '6', '10', '12'],
+      ['При какой температуре кипит вода?', '100 °C', '90 °C', '50 °C', '120 °C'],
+      ['Какой газ мы вдыхаем для жизни?', 'Кислород', 'Азот', 'Углекислый газ', 'Гелий'],
+      ['Самое большое животное', 'Синий кит', 'Слон', 'Жираф', 'Акула'],
+      ['Что растения делают на свету?', 'Фотосинтез', 'Дыхание жабрами', 'Спячку', 'Линьку'],
+      ['Сколько планет в Солнечной системе?', '8', '9', '7', '10'],
+      ['Кто такой головастик?', 'Детёныш лягушки', 'Рыба', 'Жук', 'Червь'],
+      ['Какой орган качает кровь?', 'Сердце', 'Лёгкие', 'Печень', 'Желудок'],
+      ['Лёд — это вода в каком состоянии?', 'Твёрдом', 'Жидком', 'Газообразном', 'Никаком'],
+      ['Самая большая планета', 'Юпитер', 'Сатурн', 'Земля', 'Нептун'],
+      ['Чем дышит рыба?', 'Жабрами', 'Лёгкими', 'Кожей', 'Плавниками']
+    ],
+    hist: [
+      ['Кто первым полетел в космос?', 'Юрий Гагарин', 'Нил Армстронг', 'Герман Титов', 'Валентина Терешкова'],
+      ['В каком году человек высадился на Луну?', '1969', '1957', '1975', '1961'],
+      ['Где строили пирамиды Гиза?', 'Египет', 'Мексика', 'Греция', 'Китай'],
+      ['Кто изобрёл телефон?', 'Белл', 'Эдисон', 'Тесла', 'Попов'],
+      ['Какой город основал Пётр I?', 'Санкт-Петербург', 'Москва', 'Рига', 'Новгород'],
+      ['Колизей находится в…', 'Риме', 'Афинах', 'Париже', 'Каире'],
+      ['Кто открыл Америку в 1492 году?', 'Колумб', 'Магеллан', 'Кук', 'Васко да Гама'],
+      ['Год основания Риги', '1201', '1492', '1812', '988'],
+      ['Великую Китайскую стену строили для…', 'защиты', 'торговли', 'красоты', 'дорог'],
+      ['Кто написал «Войну и мир»?', 'Толстой', 'Пушкин', 'Достоевский', 'Чехов'],
+      ['Первые Олимпийские игры были в…', 'Греции', 'Италии', 'Египте', 'Англии'],
+      ['Кто нарисовал «Мону Лизу»?', 'Леонардо да Винчи', 'Пикассо', 'Ван Гог', 'Рафаэль']
+    ]
+  };
+  let best = {}, mine = [], round = null;
+
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+
+  // математика: задачи каждый раз новые
+  function mathQ() {
+    const t = rnd(0, 3); let q, ans;
+    if (t === 0) { const a = rnd(2, 12), b = rnd(2, 12); q = `${a} × ${b} = ?`; ans = a * b; }
+    else if (t === 1) { const b = rnd(2, 12), ans2 = rnd(2, 12); q = `${b * ans2} : ${b} = ?`; ans = ans2; }
+    else if (t === 2) { const a = rnd(25, 99), b = rnd(11, 89); q = `${a} + ${b} = ?`; ans = a + b; }
+    else { const a = rnd(50, 150), b = rnd(11, 49); q = `${a} − ${b} = ?`; ans = a - b; }
+    const wrong = new Set();
+    while (wrong.size < 3) { const w = ans + rnd(-10, 10); if (w !== ans && w >= 0) wrong.add(w); }
+    return [q, String(ans), ...[...wrong].map(String)];
+  }
+
+  function show(id) { ['home', 'game', 'end', 'edit'].forEach(s => $(s).hidden = s !== id); }
+
+  function drawHome() {
+    const g = $('subs'); g.textContent = '';
+    for (const [k, s] of Object.entries(SUBJECTS)) {
+      if (k === 'mine' && mine.length < 4) continue;
+      const b = document.createElement('button'); b.className = 'sub-card';
+      b.style.background = `linear-gradient(150deg, ${s.color})`;
+      b.innerHTML = `<span>${s.icon}</span><b></b><small></small>`;
+      b.querySelector('b').textContent = s.name;
+      b.querySelector('small').textContent = best[k] ? `Рекорд: ${best[k]}` : 'Ещё не играл';
+      b.onclick = () => start(k); g.append(b);
+    }
+    show('home');
+  }
+
+  function start(k) {
+    const pool = k === 'math' ? Array.from({ length: 10 }, mathQ) : shuffle((k === 'mine' ? mine : BANK[k]).slice()).slice(0, 10);
+    round = { k, qs: pool, i: 0, score: 0, streak: 0, log: [] };
+    show('game'); next();
+  }
+
+  let timer = null, left = 0;
+  function next() {
+    const r = round; clearInterval(timer);
+    if (r.i >= r.qs.length) return finish();
+    const [q, ...opts] = r.qs[r.i], right = opts[0];
+    $('prog').textContent = `${r.i + 1} / ${r.qs.length}`; $('score').textContent = r.score;
+    $('q').textContent = q; const box = $('opts'); box.textContent = '';
+    shuffle(opts.slice()).forEach(o => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+      b.onclick = () => answer(b, o === right, right); box.append(b);
+    });
+    left = 150; tick();
+    timer = setInterval(() => { left--; tick(); if (left <= 0) answer(null, false, right); }, 100);
+  }
+  function tick() { const p = left / 150; $('time').style.width = (p * 100) + '%'; $('time').style.backgroundPosition = ((1 - p) * 100) + '% 0'; }
+
+  function answer(btn, ok, right) {
+    const r = round; if (r.locked) return; r.locked = true; clearInterval(timer);
+    [...$('opts').children].forEach(b => { if (b.textContent === right) b.classList.add('ok'); });
+    if (btn && !ok) btn.classList.add('no');
+    if (ok) { r.streak++; r.score += 10 + Math.ceil(left / 15) + (r.streak >= 3 ? 5 : 0); }
+    else r.streak = 0;
+    $('streak').textContent = r.streak >= 3 ? `🔥 Серия ${r.streak}! +5 за каждый ответ` : '';
+    r.log.push({ q: r.qs[r.i][0], right, ok });
+    setTimeout(() => { r.locked = false; r.i++; next(); }, 900);
+  }
+
+  function finish() {
+    const r = round, good = r.log.filter(x => x.ok).length, rec = r.score > (best[r.k] || 0);
+    if (rec) { best[r.k] = r.score; Horo.save('best', best); Horo.toast(`🏆 Новый рекорд: ${r.score}`); }
+    $('medal').textContent = good >= 9 ? '🏆' : good >= 7 ? '🥇' : good >= 5 ? '🥈' : good >= 3 ? '🥉' : '📚';
+    $('res').textContent = `${r.score} очков`;
+    $('resSub').textContent = `Правильно ${good} из ${r.log.length}` + (rec ? ' · новый рекорд!' : '');
+    const rv = $('review'); rv.textContent = '';
+    r.log.filter(x => !x.ok).forEach(x => { const d = document.createElement('div'); d.className = 'rv bad'; d.textContent = x.q + ' → '; const b = document.createElement('b'); b.textContent = x.right; d.append(b); rv.append(d); });
+    show('end');
+  }
+
+  function drawMine() {
+    const m = $('mine'); m.textContent = '';
+    if (mine.length < 4) { const p = document.createElement('p'); p.className = 'sub'; p.textContent = `Добавь ещё ${4 - mine.length}, и появится предмет «Мои вопросы».`; m.append(p); }
+    mine.forEach((x, i) => { const d = document.createElement('div'); d.className = 'rv'; d.textContent = x[0] + ' → '; const b = document.createElement('b'); b.textContent = x[1]; const del = document.createElement('button'); del.textContent = '✕'; del.onclick = () => { mine.splice(i, 1); Horo.save('mine', mine); drawMine(); }; d.append(b, del); m.append(d); });
+  }
+  $('add').onclick = () => {
+    const v = ['eq', 'ea', 'eb', 'ec', 'ed'].map(id => $(id).value.trim());
+    if (v.some(x => !x)) { Horo.toast('Заполни вопрос и все 4 ответа'); return; }
+    mine.unshift(v); Horo.save('mine', mine.slice(0, 100));
+    ['eq', 'ea', 'eb', 'ec', 'ed'].forEach(id => $(id).value = ''); drawMine(); Horo.toast('Вопрос добавлен');
+  };
+  $('toEdit').onclick = () => { drawMine(); show('edit'); };
+  $('back').onclick = drawHome;
+  $('quit').onclick = () => { clearInterval(timer); drawHome(); };
+  $('again').onclick = () => start(round.k);
+  $('toHome').onclick = drawHome;
+
+  Promise.all([Horo.load('best'), Horo.load('mine')]).then(([b, m]) => { best = b || {}; mine = Array.isArray(m) ? m : []; drawHome(); });
+</script>
