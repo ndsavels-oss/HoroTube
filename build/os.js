@@ -355,7 +355,7 @@ function hsFit(){
   if(!g||!pg.clientHeight)return;
   var ph=hsPhone(),n=g.children.length,W=g.clientWidth,wid=$('hsWid');
   /* offsetTop/clientHeight не зависят от анимации открытия (transform) */
-  var H=pg.clientHeight-g.offsetTop-(ph?6:12);
+  var H=pg.clientHeight-g.offsetTop-(parseFloat(getComputedStyle(pg).paddingBottom)||0)-2;
   /* маленький экран (iPhone SE): если с виджетами иконки выходят мелкими, виджеты прячем */
   var hid=hb.classList.contains('hsnowid');
   if(ph&&!hid&&wid.offsetHeight)HSW=wid.offsetHeight+14;

@@ -109,7 +109,8 @@ function osExit(p){
   var tx=ox-(r.left+r.width/2),ty=oy-(r.top+r.height/2);
   if(OS.side)closeSplit(true);
   var an=p.animate([{transform:cur,borderRadius:p.style.borderRadius||'0px',opacity:1},{transform:'translate('+tx+'px,'+ty+'px) scale(.12)',borderRadius:'60px',opacity:.15}],{duration:330,easing:'cubic-bezier(.4,0,.2,1)'});
-  an.onfinish=function(){p.style.transform='';p.style.borderRadius='';p.style.transition='';goHome();};
+  /* пока шла анимация, могли открыть другое приложение — тогда домой не уходим */
+  an.onfinish=function(){p.style.transform='';p.style.borderRadius='';p.style.transition='';if(p.classList.contains('show')&&!H.classList.contains('home'))goHome();};
 }
 function osGestures(hi){
   var st=null,H=document.documentElement;
