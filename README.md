@@ -26,3 +26,12 @@ npm i --no-save playwright@1.48.2
 npx playwright install chromium webkit
 node tests/smoke.js
 ```
+
+## Как применить SQL к базе
+
+Руками в Supabase ничего вставлять не нужно:
+
+1. Один раз: Supabase → **Connect** → вкладка **Session pooler** → скопируй строку `postgresql://postgres.…@…pooler.supabase.com:5432/postgres` и подставь в неё пароль базы вместо `[YOUR-PASSWORD]`. В GitHub: **Settings → Secrets and variables → Actions → New repository secret**, имя `SUPABASE_DB_URL`, значение — эта строка.
+2. Каждый раз: **Actions → «Выполнить SQL в базе» → Run workflow**. Сначала режим «Проверить» (всё выполняется и откатывается, база не меняется), потом «Выполнить».
+
+Всё выполняется одной транзакцией: при любой ошибке база остаётся как была. Пароль хранится только в секретах GitHub и в журналах скрыт.

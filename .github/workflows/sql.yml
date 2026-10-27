@@ -1,0 +1,39 @@
+name: Выполнить SQL в базе
+
+# Runs only when someone presses "Run workflow" on the Actions page.
+on:
+  workflow_dispatch:
+    inputs:
+      file:
+        description: 'SQL-файл из папки sql'
+        default: 'sql/all_in_one.sql'
+        required: true
+      mode:
+        description: 'Режим'
+        type: choice
+        options:
+          - 'Проверить (база не меняется)'
+          - 'Выполнить'
+        default: 'Проверить (база не меняется)'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sql
+  cancel-in-progress: false
+
+jobs:
+  sql:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Установить psql
+        run: command -v psql || (sudo apt-get update -q && sudo apt-get install -yq postgresql-client)
+      - name: ${{ inputs.mode }} ${{ inputs.file }}
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          FILE: ${{ inputs.file }}
+          MODE: ${{ inputs.mode == 'Выполнить' && 'run' || 'check' }}
+        run: bash sql/run.sh
