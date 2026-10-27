@@ -84,6 +84,17 @@ function updAdminCard(){
       var m=/var HT_VERSION='([0-9A-Za-z._-]{1,32})'/.exec(t);if(m)ver.value=m[1];
       var n=/HT_NOTES=("(?:[^"\\]|\\.)*")/.exec(t);if(n&&!notes.value){try{notes.value=JSON.parse(n[1]);}catch(e){}}
       txt=t;go.disabled=false;msg.textContent=Lx('Файл готов: ','File ready: ')+Math.round(file.size/1024)+' KB';});};
+  /* быстрый путь: выпустить ту версию, что сейчас лежит на сайте (GitHub Pages), без выбора файла */
+  var site=el('div','updsite');c.insertBefore(site,c.children[1]);
+  if(location.protocol.indexOf('http')===0)fetch(location.pathname,{cache:'no-store'}).then(function(r){return r.ok?r.text():'';}).then(function(t){
+    var m=/var HT_VERSION='([0-9A-Za-z._-]{1,32})'/.exec(t||'');if(!m||t.indexOf('createClient(')<0)return;
+    var sv=m[1];
+    if((UPD.list||[]).some(function(x){return x.version===sv;})){site.append(el('p','updok2','✓ '+Lx('Версия с сайта ','Site version ')+sv+Lx(' уже выпущена',' is already released')));return;}
+    var n=/HT_NOTES=("(?:[^"\\]|\\.)*")/.exec(t),nt='';if(n){try{nt=JSON.parse(n[1]);}catch(e){}}
+    var sb=el('button','updbtn','🚀 '+Lx('Выпустить версию с сайта ','Release site version ')+sv);
+    site.append(sb,el('p','mut',Lx('Одно нажатие: версия появится в «Обновлениях» у всех. Ниже — выбор файла вручную.','One tap: everyone sees it in Updates. Below: pick a file by hand.')));
+    sb.onclick=async function(){txt=t;ver.value=sv;if(!notes.value)notes.value=nt;sb.disabled=true;await go.onclick();sb.disabled=false;};
+  }).catch(function(){});
   go.onclick=async function(){
     var v=ver.value.trim();if(!/^[0-9A-Za-z._-]{1,32}$/.test(v)){msg.textContent=Lx('Версия: только цифры, буквы, точка, - и _','Version: digits, letters, dot, - and _ only');return;}
     if((UPD.list||[]).some(function(x){return x.version===v;})){msg.textContent=Lx('Такая версия уже есть','This version already exists');return;}
