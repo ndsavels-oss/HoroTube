@@ -7,7 +7,7 @@
    Если новая версия в прошлый раз не запустилась, сами возвращаемся к этой. */
 (function(){
   if(window.HT_LOADER)return;
-  var V='2026.10.27',c,ls;
+  var V='2026.10.27.2',c,ls;
   try{ls=window.localStorage;c=JSON.parse(ls.getItem('ht_rel_cache')||'null');}catch(e){return;}
   if(!c||!c.v||typeof c.h!=='string'||c.h.indexOf('<html')<0)return;
   var x=String(c.v).split(/\D+/).map(Number),y=V.split(/\D+/).map(Number),d=0;
@@ -26,7 +26,7 @@
     if(document.documentElement.classList.contains('os'))return;
     var d=document.createElement('div');d.setAttribute('style','position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#B00020;color:#fff;padding:14px 16px;border-radius:14px;font:14px/1.4 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.3)');
     var len=document.documentElement.outerHTML.length;
-    d.textContent='HoroTube не запустился. '+(E.length?'Ошибка: '+E.join(' | '):'Похоже, файл обрезан или скопирован не целиком.')+' Версия '+(window.HT_LOADER&&HT_LOADER.v||'2026.10.27')+', размер '+len+'. Пришли этот текст в чат.';
+    d.textContent='HoroTube не запустился. '+(E.length?'Ошибка: '+E.join(' | '):'Похоже, файл обрезан или скопирован не целиком.')+' Версия '+(window.HT_LOADER&&HT_LOADER.v||'2026.10.27.2')+', размер '+len+'. Пришли этот текст в чат.';
     var b=document.createElement('button');b.textContent='Вернуть прежнюю версию';b.setAttribute('style','display:block;margin-top:10px;border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:700;cursor:pointer');
     b.onclick=function(){try{localStorage.removeItem('ht_rel_cache');localStorage.removeItem('ht_boot');}catch(e){}location.reload();};
     if(window.HT_LOADER&&HT_LOADER.self)d.appendChild(b);
@@ -1217,6 +1217,34 @@ html.os .wttop .mbtn{background:rgba(255,255,255,.22);color:#fff}
 html.os #p-clock .mbtn.go{background:#FF9F0A}
 html.os .gledt .mbtn:not(.go){background:rgba(255,255,255,.12);color:#fff}
 .osbtn svg{width:22px;height:22px}
+/* одна страница: иконки подгоняются под экран (hsFit), поиска на домашнем экране нет */
+.hsfind,.hsres{display:none!important}
+#hsApps.fit .hsgrid{grid-template-columns:repeat(var(--hsc),minmax(0,1fr));row-gap:var(--hsgy)}
+#hsApps.fit .happ{min-width:0}
+#hsApps.fit .happ .aicon{--s:var(--hss)}
+#hsApps.fit .happ>span{max-width:calc(var(--hss) + 18px)}
+#hsApps.small .happ{gap:4px}
+#hsApps.small .happ>span{font-size:10px}
+#hsApps.small .abadge{right:calc(50% - var(--hss)/2 - 6px)}
+#hsApps.small .hx{left:calc(50% - var(--hss)/2 - 6px)}
+/* телефон: три компактных виджета в один ряд */
+html.os.phone .hswid{grid-template-columns:repeat(3,1fr);gap:10px}
+html.os.phone .hswid .wid{min-height:0;height:96px;padding:10px 12px;border-radius:20px;overflow:hidden}
+html.os.phone .hswid .wcal{grid-column:auto}
+html.os.phone .hswid .wid small{font-size:10px}
+html.os.phone .hswid .wid b,html.os.phone .hswid .wcal b{font-size:26px}
+html.os.phone .hswid .wid span{font-size:11px;line-height:1.2}
+html.os.phone .hswid .wcal .wlist{overflow:hidden;max-height:28px;font-size:11px}
+html.os.phone .hswid .wclock{gap:4px;padding:8px}
+html.os.phone .hswid .wclock .wface{--s:58px}
+html.os.phone .hsbody{gap:14px}
+html.os.phone .hswid .wev b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.os.phone .hswid .wcal .wlist{margin-top:2px;gap:2px}
+html.os.phone #hsApps{padding-top:0}
+html.os.phone .hspage{padding-top:4px}
+html.os.phone #hsApps.fit .hsgrid{margin-top:10px}
+html.hsnowid #hsWid{display:none}
+#hsApps .hspage{position:relative}
 /* ===== HoroTube: левое плавающее меню, стекло, жесты, страницы домашнего экрана ===== */
 .ytrail,.osmt,.osmtm,.osdrop{display:none}
 html.os.vapp:not(.home) .ytrail{display:flex}
@@ -1352,15 +1380,10 @@ html[data-theme="dark"] .paybtn,html[data-theme="space"] .paybtn{background:#fff
 .paybtn:disabled{opacity:.35;cursor:default}
 .paybox .mbtn{margin-top:10px}
 .paybox.busy .paybtn,.paybox.busy .paymsg:empty{display:none}
-/* подсказка у «боковой кнопки» справа */
-.payside{position:fixed;right:0;top:22%;display:flex;align-items:center;gap:10px;pointer-events:none;color:#fff;font:700 14px Manrope,sans-serif;text-shadow:0 1px 6px rgba(0,0,0,.4);opacity:0;transition:opacity .4s .3s}
-.payov.show .payside{opacity:1}
-.payside i{order:2;width:6px;height:74px;border-radius:4px 0 0 4px;background:#fff;box-shadow:0 0 16px rgba(255,255,255,.9);animation:paysidepulse 1.4s ease-in-out infinite}
-.payside span{max-width:140px;text-align:right;animation:paysidetext 1.4s ease-in-out infinite}
-.payside.pulse i{animation:paysidehit .5s ease-out 2}
-@keyframes paysidepulse{50%{transform:translateX(-5px);opacity:.6}}
-@keyframes paysidetext{50%{transform:translateX(-6px)}}
-@keyframes paysidehit{50%{transform:translateX(-12px) scaleY(1.2)}}
+.payhint{margin:8px 4px 0;font-size:12.5px;color:var(--text2);text-align:center}
+.payhint:empty,.payhint[hidden]{display:none}
+.payreset{display:block;margin:8px auto 0;border:0;background:none;color:#0A84FF;font:700 13px Manrope,sans-serif;cursor:pointer}
+.paybox.busy .payreset{display:none}
 /* Face ID, кольцо загрузки и галочка */
 .payst{display:none;flex-direction:column;align-items:center;gap:8px;padding:18px 0 4px}
 .paybox.busy .payst,.paybox.fail .payst,.paybox.ok .payst{display:flex}
@@ -6120,13 +6143,13 @@ function osBar(){
 var HS={page:0,edit:false,drag:null,moved:0};
 try{OS.layout=JSON.parse(localStorage.getItem('h_layout')||'null');}catch(e){}
 function hsPhone(){return document.documentElement.classList.contains('phone');}
-/* сколько иконок помещается на страницу (на телефоне первая — с виджетами) */
-function hsCap(i){return hsPhone()&&i===0?12:24;}
+/* все приложения на одной странице: размер иконок подгоняет hsFit */
+function hsCap(i){return 1e9;}
 /* раскладка по страницам: что я расставил сам + новые приложения в конец */
 function hsPages(){
   var vis=APPS.filter(appVisible).map(function(a){return a.id;});
   var L=(Array.isArray(OS.layout)?OS.layout:[]).map(function(p){return (p||[]).filter(function(id){return vis.indexOf(id)>=0;});});
-  if(!L.length)L=[[]];
+  L=[[].concat.apply([],L)];
   var placed=[].concat.apply([],L);
   vis.forEach(function(id){
     if(placed.indexOf(id)>=0)return;
@@ -6145,7 +6168,7 @@ function drawHome(quiet){
   var box=$('hsApps'),wid=$('hsWid');
   box.classList.toggle('quiet',!!quiet);
   box.textContent='';
-  var L=hsPages();if(HS.edit)L.push([]);
+  var L=hsPages();
   L.forEach(function(ids,pi){
     var pg=el('div','hspage'),g=el('div','hsgrid');
     if(hsPhone()&&pi===0)pg.append(wid);
@@ -6158,6 +6181,7 @@ function drawHome(quiet){
   hsDots();
   $('hsDone').hidden=!HS.edit;
   drawWidgets();clockTick();drawDock();
+  requestAnimationFrame(hsFit);
   var av=$('hsMe');av.textContent='';if(ME)av.append(avatarEl(ME.id,ME.name||ME.nick,40));else av.append(el('span',null,'👤'));
 }
 function hsIcon(a,i){
@@ -6179,8 +6203,7 @@ function hsGo(i,make){
   var box=$('hsApps');
   if(i<0)return;
   if(i>=box.children.length){
-    if(!make||!HS.edit)return;
-    var pg=el('div','hspage');pg.append(el('div','hsgrid'));box.append(pg);
+    return;
   }
   HS.page=i;box.scrollTo({left:i*box.clientWidth,behavior:'smooth'});hsDots();
 }
@@ -6273,6 +6296,37 @@ function hsInit(){
   box.addEventListener('wheel',function(e){if(Math.abs(e.deltaY)<=Math.abs(e.deltaX)||box.children.length<2)return;e.preventDefault();if(Date.now()-wt<500)return;wt=Date.now();hsGo(HS.page+(e.deltaY>0?1:-1));},{passive:false});
   document.addEventListener('keydown',function(e){if(!pageOn('p-home')||/INPUT|TEXTAREA/.test((e.target||{}).tagName||''))return;if(e.key==='ArrowRight')hsGo(HS.page+1);if(e.key==='ArrowLeft')hsGo(HS.page-1);});
   addEventListener('resize',function(){if(pageOn('p-home'))box.scrollLeft=HS.page*box.clientWidth;});
+  if(window.ResizeObserver){var ro=new ResizeObserver(function(){hsFit();});ro.observe(box);ro.observe($('hsWid'));}
+}
+/* подбирает размер иконок и число колонок, чтобы всё влезло без прокрутки */
+function hsFitFor(H,W,n,ph){
+  /* iPad в режиме телефона (широкий экран) — иконки крупнее и просторнее */
+  var wide=ph&&W>600,max=wide?84:ph?60:(document.documentElement.classList.contains('bigicons')?88:72),s,c=4,gy=8;
+  for(s=max;s>=34;s-=2){
+    c=Math.max(ph?4:3,Math.floor(W/(s+(wide?44:ph?16:28))));
+    gy=Math.max(6,Math.round(s*(ph?.22:.3)));
+    var rows=Math.ceil(n/c),lab=s<50?17:(ph?22:25);
+    if(rows*(s+lab)+(rows-1)*gy<=H)break;
+  }
+  return {s:Math.max(s,34),c:c,gy:gy};
+}
+var HSW=110;
+function hsFit(){
+  var box=$('hsApps'),pg=box&&box.firstChild,g=pg&&pg.querySelector('.hsgrid'),hb=document.documentElement;
+  if(!g||!pg.clientHeight)return;
+  var ph=hsPhone(),n=g.children.length,W=g.clientWidth,wid=$('hsWid');
+  /* offsetTop/clientHeight не зависят от анимации открытия (transform) */
+  var H=pg.clientHeight-g.offsetTop-(ph?6:12);
+  /* маленький экран (iPhone SE): если с виджетами иконки выходят мелкими, виджеты прячем */
+  var hid=hb.classList.contains('hsnowid');
+  if(ph&&!hid&&wid.offsetHeight)HSW=wid.offsetHeight+14;
+  var withW=hid?H-HSW:H,f=hsFitFor(withW,W,n,ph),noW=ph&&f.s<44;
+  if(noW)f=hsFitFor(withW+HSW,W,n,ph);
+  hb.classList.toggle('hsnowid',noW);
+  /* после показа или скрытия виджетов перемеряем ещё раз (не больше трёх раз подряд) */
+  if(noW!==hid&&(HS.refit=(HS.refit||0)+1)<4)requestAnimationFrame(hsFit);else HS.refit=0;
+  box.style.setProperty('--hss',f.s+'px');box.style.setProperty('--hsc',String(f.c));box.style.setProperty('--hsgy',f.gy+'px');
+  box.classList.add('fit');box.classList.toggle('small',f.s<50);
 }
 
 async function drawWidgets(){
@@ -7002,7 +7056,31 @@ function runUserApp(id){
   uappsCheck().then(function(u){if(OS.app==='u'+id&&u.some(function(z){return String(z.id)===String(id);})&&OS.uapps[id]){b.textContent='';sandboxClean();b.append(sandboxFrame(OS.uapps[id].code,'s'+id));}});
 }
 
-/* ===== Оплата за Tubek как на iPhone: лист снизу, «нажми дважды», Face ID, галочка ===== */
+/* ===== Оплата за Tubek как на iPhone: лист снизу, кнопка «Оплатить», настоящий Face ID, галочка ===== */
+/* Face ID / Touch ID через ключ доступа (WebAuthn): телефон сам проверяет лицо или палец.
+   Ключ создаётся при первой оплате и хранится в iCloud-связке; его id — в localStorage. */
+var PK={ok:null};
+function pkCheck(){
+  if(PK.ok!==null)return;
+  var inFrame=true;try{inFrame=window.top!==window.self;}catch(e){}
+  if(inFrame||!window.PublicKeyCredential||!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable||!window.isSecureContext){PK.ok=false;return;}
+  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(v){PK.ok=!!v;},function(){PK.ok=false;});
+}
+function pkName(){var u=navigator.userAgent;return /iPhone/.test(u)?'Face ID':/iPad|Macintosh/.test(u)?'Touch ID / Face ID':Lx('отпечаток или PIN','fingerprint or PIN');}
+function pkKey(){return 'h_pk_'+(ME?ME.id:'');}
+function b64e(buf){var s='',b=new Uint8Array(buf);for(var i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function b64d(t){var s=atob(t.replace(/-/g,'+').replace(/_/g,'/')),b=new Uint8Array(s.length);for(var i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return b;}
+/* вызывать прямо в обработчике нажатия: Safari показывает Face ID только по жесту */
+function pkAsk(){
+  var ch=crypto.getRandomValues(new Uint8Array(32)),id=null;
+  try{id=localStorage.getItem(pkKey());}catch(e){}
+  if(id)return navigator.credentials.get({publicKey:{challenge:ch,rpId:location.hostname,allowCredentials:[{type:'public-key',id:b64d(id)}],userVerification:'required',timeout:60000}});
+  return navigator.credentials.create({publicKey:{rp:{name:'HoroTube',id:location.hostname},
+    user:{id:new TextEncoder().encode(ME.id).slice(0,64),name:'@'+(ME.nick||'horotube'),displayName:'HoroTube @'+(ME.nick||'')},
+    challenge:ch,pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+    authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},attestation:'none',timeout:60000}})
+    .then(function(c){try{localStorage.setItem(pkKey(),b64e(c.rawId));}catch(e){}return c;});
+}
 /* o: {name, sub, price, icon (элемент значка), title, run: async () => текст ошибки или null} → Promise<boolean> */
 function osPay(o){
   return new Promise(function(done){
@@ -7016,13 +7094,16 @@ function osPay(o){
     row(Lx('Баланс','Balance'),bal+' 🪙');
     row(Lx('Цена','Price'),o.price+' 🪙','big');
     var st=el('div','payst'),msg=el('p','paymsg');
+    pkCheck();
     var pay=el('button','paybtn',Lx('Оплатить ','Pay ')+o.price+' 🪙');
-    var side=el('div','payside');side.append(el('i'),el('span',null,Lx('Нажми дважды для оплаты','Double-click to pay')));
-    box.append(hd,it,rows,msg,pay,st);ov.append(box,side);
+    var hint=el('p','payhint');
+    function hintTx(){var has=null;try{has=localStorage.getItem(pkKey());}catch(e){}hint.textContent=PK.ok?Lx('Подтвердишь: ','You confirm with ')+pkName()+(has?'':Lx('. В первый раз телефон предложит сохранить ключ HoroTube — нажми «Продолжить».','. The first time your phone offers to save a HoroTube passkey: tap Continue.')):'';}
+    hintTx();setTimeout(hintTx,300);
+    box.append(hd,it,rows,msg,pay,hint,st);ov.append(box);
     if(short>0){
       pay.disabled=true;msg.className='paymsg bad';
       msg.textContent=Lx('Не хватает ','You need ')+short+Lx(' 🪙. Забирай ежедневный бонус и играй в шахматы.',' more 🪙. Claim the daily bonus and play chess.');
-      side.style.display='none';
+      hint.hidden=true;
       var how=btn(Lx('Как заработать Tubek','How to earn Tubek'),'mbtn',function(){close(false);openSettings('tubek');});box.insertBefore(how,st);
     }
     document.body.append(ov);
@@ -7030,19 +7111,32 @@ function osPay(o){
     function close(ok){ov.classList.remove('show');ov.classList.add('hide');setTimeout(function(){ov.remove();},380);done(ok);}
     x.addEventListener('click',function(){if(!box.classList.contains('busy'))close(false);});
     ov.addEventListener('click',function(e){if(e.target===ov&&!box.classList.contains('busy'))close(false);});
-    /* как боковая кнопка iPhone: подтверждение — двойное нажатие */
-    var lastTap=0;
+    var FACE='<svg class="payface" viewBox="0 0 60 60"><path d="M6 18V10a4 4 0 0 1 4-4h8M42 6h8a4 4 0 0 1 4 4v8M54 42v8a4 4 0 0 1-4 4h-8M18 54h-8a4 4 0 0 1-4-4v-8"/><path d="M22 22v4M38 22v4M30 24v10h-3M23 40c4 4 10 4 14 0"/></svg>';
+    /* одно нажатие на «Оплатить» — и сразу системный Face ID */
     pay.addEventListener('click',function(){
       if(pay.disabled)return;
-      var now=Date.now();
-      if(now-lastTap<450){lastTap=0;go();return;}
-      lastTap=now;side.classList.remove('pulse');void side.offsetWidth;side.classList.add('pulse');
+      if(!PK.ok){go(false);return;}
+      var ask;try{ask=pkAsk();}catch(e){ask=Promise.reject(e);}
+      box.classList.add('busy');pay.disabled=true;x.disabled=true;hint.hidden=true;msg.textContent='';msg.className='paymsg';
+      st.innerHTML=FACE;st.append(el('b',null,pkName()));box.classList.add('scan');
+      ask.then(function(){go(true);},function(e){
+        box.classList.remove('busy','scan');pay.disabled=false;x.disabled=false;hint.hidden=false;
+        msg.className='paymsg bad';
+        msg.textContent=e&&e.name==='NotAllowedError'?Lx('Оплата отменена: ','Payment cancelled: ')+pkName()+Lx(' не подтверждён.',' was not confirmed.'):Lx('Не получилось проверить: ','Could not verify: ')+(e&&e.message||e);
+        /* ключ могли удалить в «Пароли» — дадим создать заново */
+        if(!msg.nextSibling||!msg.nextSibling.classList||!msg.nextSibling.classList.contains('payreset')){
+          var rs=btn(Lx('Face ID не появился? Создать ключ заново','No Face ID prompt? Create the key again'),'payreset',function(){try{localStorage.removeItem(pkKey());}catch(er){}rs.remove();hintTx();msg.textContent='';});
+          box.insertBefore(rs,pay);
+        }
+      });
     });
-    async function go(){
-      box.classList.add('busy');pay.disabled=true;x.disabled=true;side.style.display='none';
-      st.innerHTML='<svg class="payface" viewBox="0 0 60 60"><path d="M6 18V10a4 4 0 0 1 4-4h8M42 6h8a4 4 0 0 1 4 4v8M54 42v8a4 4 0 0 1-4 4h-8M18 54h-8a4 4 0 0 1-4-4v-8"/><path d="M22 22v4M38 22v4M30 24v10h-3M23 40c4 4 10 4 14 0"/></svg>';
-      st.append(el('b',null,'Face ID'));box.classList.add('scan');
-      await new Promise(function(r){setTimeout(r,900);});
+    async function go(real){
+      box.classList.add('busy');pay.disabled=true;x.disabled=true;hint.hidden=true;
+      if(!real){
+        /* устройства без Face ID и отпечатка: только короткая анимация */
+        st.innerHTML=FACE;st.append(el('b',null,Lx('Подтверждение','Confirming')));box.classList.add('scan');
+        await new Promise(function(r){setTimeout(r,700);});
+      }
       box.classList.remove('scan');box.classList.add('proc');
       st.innerHTML='<svg class="payring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24"/></svg>';st.append(el('b',null,Lx('Оплата…','Processing…')));
       var err=null;
@@ -7281,7 +7375,7 @@ function xappPhoto(dataUrl){
 /* ===== Обновления: новая версия сайта выпускается прямо из HoroTube, без вставки кода на хостинг.
    На хостинге лежит маленький загрузчик (index.html), он открывает самую новую версию из Supabase.
    Выпускать и отзывать версии может только админ (проверка на сервере, updates.sql). ===== */
-var HT_VERSION='2026.10.27',HT_NOTES="\u2022 HoroTube \u0442\u0435\u043f\u0435\u0440\u044c \u0436\u0438\u0432\u0451\u0442 \u043d\u0430 GitHub: \u0441\u0430\u0439\u0442 \u043e\u0442\u043a\u0440\u044b\u0432\u0430\u0435\u0442\u0441\u044f \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435, \u043a\u0430\u0436\u0434\u0443\u044e \u0432\u0435\u0440\u0441\u0438\u044e \u043f\u0440\u043e\u0432\u0435\u0440\u044f\u044e\u0442 \u0432 Chrome \u0438 Safari (WebKit)\n\u2022 \u041f\u043e\u0438\u0441\u043a: \u00ab@\u043d\u0438\u043a\u00bb \u0442\u0435\u043f\u0435\u0440\u044c \u043d\u0430\u0445\u043e\u0434\u0438\u0442 \u0438 \u0441\u0442\u0430\u0442\u044c\u0438 \u044d\u0442\u043e\u0433\u043e \u0443\u0447\u0435\u043d\u0438\u043a\u0430, \u0430 \u043d\u0435 \u0442\u043e\u043b\u044c\u043a\u043e \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u043f\u043e\u0440\u0442\u0444\u043e\u043b\u0438\u043e\n\u2022 \u0421\u0442\u0430\u0442\u044c\u0438 \u0432 \u041f\u043e\u0438\u0441\u043a\u0435, \u043f\u043e\u0440\u0442\u0444\u043e\u043b\u0438\u043e \u043f\u043e \u043d\u0438\u043a\u0443, \u0430\u0432\u0442\u043e\u043e\u0442\u0437\u044b\u0432 \u043f\u0440\u0438 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u0438, \u0432\u0438\u0434\u0435\u043e \u0438 \u0441\u0442\u0430\u0442\u044c\u0438 \u043d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443 \u0447\u0435\u0440\u0435\u0437 \u041f\u043e\u0447\u0442\u0443";
+var HT_VERSION='2026.10.27.2',HT_NOTES="\u2022 \u0414\u043e\u043c\u0430\u0448\u043d\u0438\u0439 \u044d\u043a\u0440\u0430\u043d \u043d\u0430 \u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0435 \u0438 iPad: \u0432\u0441\u0435 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u044f \u043d\u0430 \u043e\u0434\u043d\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435 \u0431\u0435\u0437 \u043f\u0440\u043e\u043a\u0440\u0443\u0442\u043a\u0438, \u0438\u043a\u043e\u043d\u043a\u0438 \u043f\u043e\u0434\u0441\u0442\u0440\u0430\u0438\u0432\u0430\u044e\u0442\u0441\u044f \u043f\u043e\u0434 \u044d\u043a\u0440\u0430\u043d, \u0432\u0438\u0434\u0436\u0435\u0442\u044b \u0432 \u043e\u0434\u0438\u043d \u0440\u044f\u0434\n\u2022 \u0423\u0431\u0440\u0430\u043d\u0430 \u0441\u0442\u0440\u043e\u043a\u0430 \u043f\u043e\u0438\u0441\u043a\u0430 \u0441 \u0434\u043e\u043c\u0430\u0448\u043d\u0435\u0433\u043e \u044d\u043a\u0440\u0430\u043d\u0430 (Horo \u041f\u043e\u0438\u0441\u043a \u043e\u0441\u0442\u0430\u043b\u0441\u044f \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435\u043c)\n\u2022 \u041e\u043f\u043b\u0430\u0442\u0430: \u043e\u0434\u043d\u043e \u043d\u0430\u0436\u0430\u0442\u0438\u0435 \u043d\u0430 \u00ab\u041e\u043f\u043b\u0430\u0442\u0438\u0442\u044c\u00bb \u0438 \u043d\u0430\u0441\u0442\u043e\u044f\u0449\u0438\u0439 Face ID / Touch ID \u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0430\n\u2022 HoroTube \u0442\u0435\u043f\u0435\u0440\u044c \u0436\u0438\u0432\u0451\u0442 \u043d\u0430 GitHub: \u0441\u0430\u0439\u0442 \u043e\u0442\u043a\u0440\u044b\u0432\u0430\u0435\u0442\u0441\u044f \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435, \u043a\u0430\u0436\u0434\u0443\u044e \u0432\u0435\u0440\u0441\u0438\u044e \u043f\u0440\u043e\u0432\u0435\u0440\u044f\u044e\u0442 \u0432 Chrome \u0438 Safari (WebKit)\n\u2022 \u041f\u043e\u0438\u0441\u043a: \u00ab@\u043d\u0438\u043a\u00bb \u0442\u0435\u043f\u0435\u0440\u044c \u043d\u0430\u0445\u043e\u0434\u0438\u0442 \u0438 \u0441\u0442\u0430\u0442\u044c\u0438 \u044d\u0442\u043e\u0433\u043e \u0443\u0447\u0435\u043d\u0438\u043a\u0430, \u0430 \u043d\u0435 \u0442\u043e\u043b\u044c\u043a\u043e \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u043f\u043e\u0440\u0442\u0444\u043e\u043b\u0438\u043e\n\u2022 \u0421\u0442\u0430\u0442\u044c\u0438 \u0432 \u041f\u043e\u0438\u0441\u043a\u0435, \u043f\u043e\u0440\u0442\u0444\u043e\u043b\u0438\u043e \u043f\u043e \u043d\u0438\u043a\u0443, \u0430\u0432\u0442\u043e\u043e\u0442\u0437\u044b\u0432 \u043f\u0440\u0438 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u0438, \u0432\u0438\u0434\u0435\u043e \u0438 \u0441\u0442\u0430\u0442\u044c\u0438 \u043d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443 \u0447\u0435\u0440\u0435\u0437 \u041f\u043e\u0447\u0442\u0443";
 var UPD={list:null,top:null,has:false};
 function updCmp(a,b){var x=String(a).split(/\D+/).map(Number),y=String(b).split(/\D+/).map(Number);for(var i=0;i<Math.max(x.length,y.length);i++){var d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function updUrl(p){return SB_URL+'/storage/v1/object/public/ht_releases/'+encodeURIComponent(p);}

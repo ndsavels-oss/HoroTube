@@ -32,13 +32,35 @@ async function run(type,dev,tag){
   pg.on('dialog',d=>d.accept());
   await pg.route('**/*',r=>{const u=r.request().url();
     if(u.includes('supabase-js'))return r.fulfill({contentType:'application/javascript',body:mock});
-    if(u.startsWith('http://127.0.0.1'))return r.continue();
+    if(u.startsWith('http://localhost'))return r.continue();
     return r.fulfill({status:404,body:''});});
   await pg.addInitScript('window.MOCK_ADMIN=1');
-  await pg.goto('http://127.0.0.1:'+srv.address().port+'/');await pg.waitForTimeout(2500);
+  await pg.goto('http://localhost:'+srv.address().port+'/');await pg.waitForTimeout(2500);
   check(tag,'HoroOS запустился',await pg.evaluate(()=>document.documentElement.classList.contains('os')));
   check(tag,'нет красной плашки',!(await pg.evaluate(()=>/HoroTube не запустился/.test(document.body.innerText))));
   await pg.screenshot({path:path.join(SHOTS,tag+'-home.png')});
+  /* домашний экран: одна страница, всё видно без прокрутки, строки поиска нет */
+  const hs=await pg.evaluate(()=>{const b=document.getElementById('hsApps'),p=b.firstChild,f=document.querySelector('.hsfind');
+    const last=[...p.querySelectorAll('.happ')].pop(),r=last&&last.getBoundingClientRect(),pr=p.getBoundingClientRect();
+    return {pages:b.children.length,icons:p.querySelectorAll('.happ').length,over:p.scrollHeight-p.clientHeight,lastIn:!!r&&r.bottom<=pr.bottom+1,find:!!f&&f.offsetWidth>0,size:getComputedStyle(b).getPropertyValue('--hss')};});
+  check(tag,'все приложения на одной странице без прокрутки',hs.pages===1&&hs.over<=1&&hs.lastIn,JSON.stringify(hs));
+  check(tag,'строки поиска на домашнем экране нет',!hs.find);
+  /* оплата: одно нажатие на «Оплатить» и Face ID (в Chromium — виртуальный ключ) */
+  if(type==='chromium'){
+    const cdp=await ctx.newCDPSession(pg);
+    await cdp.send('WebAuthn.enable');
+    await cdp.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'internal',hasResidentKey:true,hasUserVerification:true,isUserVerified:true}});
+  }
+  for(const n of [1,2]){
+    await pg.evaluate(()=>{window.__pay=osPay({name:'Тест',price:0,icon:payIcon('🧪','#eee'),run:async()=>null});});
+    await pg.waitForTimeout(700);
+    await step(tag,'кнопка «Оплатить»',pg,()=>pg.click('.paybtn',{timeout:4000}),'.paybtn');
+    const ok=await pg.evaluate(()=>Promise.race([window.__pay,new Promise(r=>setTimeout(()=>r('timeout'),6000))]));
+    const pk=await pg.evaluate(()=>({ok:PK.ok,key:!!localStorage.getItem(pkKey())}));
+    check(tag,'оплата одним нажатием'+(type==='chromium'?' с Face ID, раз '+n:''),ok===true&&(type!=='chromium'||(pk.ok&&pk.key)),JSON.stringify({ok,pk}));
+    await pg.waitForTimeout(500);
+    if(type!=='chromium')break;
+  }
   const apps=await pg.evaluate(()=>APPS.filter(a=>OS.inst.includes(a.id)).map(a=>a.id));
   for(const id of apps){
     const before=errs.length;
@@ -68,11 +90,13 @@ async function run(type,dev,tag){
   check(tag,'ошибок JavaScript нет',errs.length===0,errs.slice(0,5).join(' | '));
   await br.close();
 }
-srv.listen(0,'127.0.0.1',async()=>{
+srv.listen(0,async()=>{
   try{
     for(const type of only){
       await run(type,{viewport:{width:1280,height:860}},type+'-desktop');
       await run(type,devices['iPhone 13'],type+'-iphone');
+      await run(type,devices['iPhone SE'],type+'-iphone-se');
+      await run(type,devices['iPad (gen 7)'],type+'-ipad');
     }
   }catch(e){console.log('  FAIL '+e.message);fails++;}
   srv.close();

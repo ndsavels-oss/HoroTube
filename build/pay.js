@@ -1,4 +1,28 @@
-/* ===== Оплата за Tubek как на iPhone: лист снизу, «нажми дважды», Face ID, галочка ===== */
+/* ===== Оплата за Tubek как на iPhone: лист снизу, кнопка «Оплатить», настоящий Face ID, галочка ===== */
+/* Face ID / Touch ID через ключ доступа (WebAuthn): телефон сам проверяет лицо или палец.
+   Ключ создаётся при первой оплате и хранится в iCloud-связке; его id — в localStorage. */
+var PK={ok:null};
+function pkCheck(){
+  if(PK.ok!==null)return;
+  var inFrame=true;try{inFrame=window.top!==window.self;}catch(e){}
+  if(inFrame||!window.PublicKeyCredential||!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable||!window.isSecureContext){PK.ok=false;return;}
+  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(v){PK.ok=!!v;},function(){PK.ok=false;});
+}
+function pkName(){var u=navigator.userAgent;return /iPhone/.test(u)?'Face ID':/iPad|Macintosh/.test(u)?'Touch ID / Face ID':Lx('отпечаток или PIN','fingerprint or PIN');}
+function pkKey(){return 'h_pk_'+(ME?ME.id:'');}
+function b64e(buf){var s='',b=new Uint8Array(buf);for(var i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function b64d(t){var s=atob(t.replace(/-/g,'+').replace(/_/g,'/')),b=new Uint8Array(s.length);for(var i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return b;}
+/* вызывать прямо в обработчике нажатия: Safari показывает Face ID только по жесту */
+function pkAsk(){
+  var ch=crypto.getRandomValues(new Uint8Array(32)),id=null;
+  try{id=localStorage.getItem(pkKey());}catch(e){}
+  if(id)return navigator.credentials.get({publicKey:{challenge:ch,rpId:location.hostname,allowCredentials:[{type:'public-key',id:b64d(id)}],userVerification:'required',timeout:60000}});
+  return navigator.credentials.create({publicKey:{rp:{name:'HoroTube',id:location.hostname},
+    user:{id:new TextEncoder().encode(ME.id).slice(0,64),name:'@'+(ME.nick||'horotube'),displayName:'HoroTube @'+(ME.nick||'')},
+    challenge:ch,pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+    authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},attestation:'none',timeout:60000}})
+    .then(function(c){try{localStorage.setItem(pkKey(),b64e(c.rawId));}catch(e){}return c;});
+}
 /* o: {name, sub, price, icon (элемент значка), title, run: async () => текст ошибки или null} → Promise<boolean> */
 function osPay(o){
   return new Promise(function(done){
@@ -12,13 +36,16 @@ function osPay(o){
     row(Lx('Баланс','Balance'),bal+' 🪙');
     row(Lx('Цена','Price'),o.price+' 🪙','big');
     var st=el('div','payst'),msg=el('p','paymsg');
+    pkCheck();
     var pay=el('button','paybtn',Lx('Оплатить ','Pay ')+o.price+' 🪙');
-    var side=el('div','payside');side.append(el('i'),el('span',null,Lx('Нажми дважды для оплаты','Double-click to pay')));
-    box.append(hd,it,rows,msg,pay,st);ov.append(box,side);
+    var hint=el('p','payhint');
+    function hintTx(){var has=null;try{has=localStorage.getItem(pkKey());}catch(e){}hint.textContent=PK.ok?Lx('Подтвердишь: ','You confirm with ')+pkName()+(has?'':Lx('. В первый раз телефон предложит сохранить ключ HoroTube — нажми «Продолжить».','. The first time your phone offers to save a HoroTube passkey: tap Continue.')):'';}
+    hintTx();setTimeout(hintTx,300);
+    box.append(hd,it,rows,msg,pay,hint,st);ov.append(box);
     if(short>0){
       pay.disabled=true;msg.className='paymsg bad';
       msg.textContent=Lx('Не хватает ','You need ')+short+Lx(' 🪙. Забирай ежедневный бонус и играй в шахматы.',' more 🪙. Claim the daily bonus and play chess.');
-      side.style.display='none';
+      hint.hidden=true;
       var how=btn(Lx('Как заработать Tubek','How to earn Tubek'),'mbtn',function(){close(false);openSettings('tubek');});box.insertBefore(how,st);
     }
     document.body.append(ov);
@@ -26,19 +53,32 @@ function osPay(o){
     function close(ok){ov.classList.remove('show');ov.classList.add('hide');setTimeout(function(){ov.remove();},380);done(ok);}
     x.addEventListener('click',function(){if(!box.classList.contains('busy'))close(false);});
     ov.addEventListener('click',function(e){if(e.target===ov&&!box.classList.contains('busy'))close(false);});
-    /* как боковая кнопка iPhone: подтверждение — двойное нажатие */
-    var lastTap=0;
+    var FACE='<svg class="payface" viewBox="0 0 60 60"><path d="M6 18V10a4 4 0 0 1 4-4h8M42 6h8a4 4 0 0 1 4 4v8M54 42v8a4 4 0 0 1-4 4h-8M18 54h-8a4 4 0 0 1-4-4v-8"/><path d="M22 22v4M38 22v4M30 24v10h-3M23 40c4 4 10 4 14 0"/></svg>';
+    /* одно нажатие на «Оплатить» — и сразу системный Face ID */
     pay.addEventListener('click',function(){
       if(pay.disabled)return;
-      var now=Date.now();
-      if(now-lastTap<450){lastTap=0;go();return;}
-      lastTap=now;side.classList.remove('pulse');void side.offsetWidth;side.classList.add('pulse');
+      if(!PK.ok){go(false);return;}
+      var ask;try{ask=pkAsk();}catch(e){ask=Promise.reject(e);}
+      box.classList.add('busy');pay.disabled=true;x.disabled=true;hint.hidden=true;msg.textContent='';msg.className='paymsg';
+      st.innerHTML=FACE;st.append(el('b',null,pkName()));box.classList.add('scan');
+      ask.then(function(){go(true);},function(e){
+        box.classList.remove('busy','scan');pay.disabled=false;x.disabled=false;hint.hidden=false;
+        msg.className='paymsg bad';
+        msg.textContent=e&&e.name==='NotAllowedError'?Lx('Оплата отменена: ','Payment cancelled: ')+pkName()+Lx(' не подтверждён.',' was not confirmed.'):Lx('Не получилось проверить: ','Could not verify: ')+(e&&e.message||e);
+        /* ключ могли удалить в «Пароли» — дадим создать заново */
+        if(!msg.nextSibling||!msg.nextSibling.classList||!msg.nextSibling.classList.contains('payreset')){
+          var rs=btn(Lx('Face ID не появился? Создать ключ заново','No Face ID prompt? Create the key again'),'payreset',function(){try{localStorage.removeItem(pkKey());}catch(er){}rs.remove();hintTx();msg.textContent='';});
+          box.insertBefore(rs,pay);
+        }
+      });
     });
-    async function go(){
-      box.classList.add('busy');pay.disabled=true;x.disabled=true;side.style.display='none';
-      st.innerHTML='<svg class="payface" viewBox="0 0 60 60"><path d="M6 18V10a4 4 0 0 1 4-4h8M42 6h8a4 4 0 0 1 4 4v8M54 42v8a4 4 0 0 1-4 4h-8M18 54h-8a4 4 0 0 1-4-4v-8"/><path d="M22 22v4M38 22v4M30 24v10h-3M23 40c4 4 10 4 14 0"/></svg>';
-      st.append(el('b',null,'Face ID'));box.classList.add('scan');
-      await new Promise(function(r){setTimeout(r,900);});
+    async function go(real){
+      box.classList.add('busy');pay.disabled=true;x.disabled=true;hint.hidden=true;
+      if(!real){
+        /* устройства без Face ID и отпечатка: только короткая анимация */
+        st.innerHTML=FACE;st.append(el('b',null,Lx('Подтверждение','Confirming')));box.classList.add('scan');
+        await new Promise(function(r){setTimeout(r,700);});
+      }
       box.classList.remove('scan');box.classList.add('proc');
       st.innerHTML='<svg class="payring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24"/></svg>';st.append(el('b',null,Lx('Оплата…','Processing…')));
       var err=null;

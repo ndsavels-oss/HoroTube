@@ -182,13 +182,13 @@ function osBar(){
 var HS={page:0,edit:false,drag:null,moved:0};
 try{OS.layout=JSON.parse(localStorage.getItem('h_layout')||'null');}catch(e){}
 function hsPhone(){return document.documentElement.classList.contains('phone');}
-/* сколько иконок помещается на страницу (на телефоне первая — с виджетами) */
-function hsCap(i){return hsPhone()&&i===0?12:24;}
+/* все приложения на одной странице: размер иконок подгоняет hsFit */
+function hsCap(i){return 1e9;}
 /* раскладка по страницам: что я расставил сам + новые приложения в конец */
 function hsPages(){
   var vis=APPS.filter(appVisible).map(function(a){return a.id;});
   var L=(Array.isArray(OS.layout)?OS.layout:[]).map(function(p){return (p||[]).filter(function(id){return vis.indexOf(id)>=0;});});
-  if(!L.length)L=[[]];
+  L=[[].concat.apply([],L)];
   var placed=[].concat.apply([],L);
   vis.forEach(function(id){
     if(placed.indexOf(id)>=0)return;
@@ -207,7 +207,7 @@ function drawHome(quiet){
   var box=$('hsApps'),wid=$('hsWid');
   box.classList.toggle('quiet',!!quiet);
   box.textContent='';
-  var L=hsPages();if(HS.edit)L.push([]);
+  var L=hsPages();
   L.forEach(function(ids,pi){
     var pg=el('div','hspage'),g=el('div','hsgrid');
     if(hsPhone()&&pi===0)pg.append(wid);
@@ -220,6 +220,7 @@ function drawHome(quiet){
   hsDots();
   $('hsDone').hidden=!HS.edit;
   drawWidgets();clockTick();drawDock();
+  requestAnimationFrame(hsFit);
   var av=$('hsMe');av.textContent='';if(ME)av.append(avatarEl(ME.id,ME.name||ME.nick,40));else av.append(el('span',null,'👤'));
 }
 function hsIcon(a,i){
@@ -241,8 +242,7 @@ function hsGo(i,make){
   var box=$('hsApps');
   if(i<0)return;
   if(i>=box.children.length){
-    if(!make||!HS.edit)return;
-    var pg=el('div','hspage');pg.append(el('div','hsgrid'));box.append(pg);
+    return;
   }
   HS.page=i;box.scrollTo({left:i*box.clientWidth,behavior:'smooth'});hsDots();
 }
@@ -335,6 +335,37 @@ function hsInit(){
   box.addEventListener('wheel',function(e){if(Math.abs(e.deltaY)<=Math.abs(e.deltaX)||box.children.length<2)return;e.preventDefault();if(Date.now()-wt<500)return;wt=Date.now();hsGo(HS.page+(e.deltaY>0?1:-1));},{passive:false});
   document.addEventListener('keydown',function(e){if(!pageOn('p-home')||/INPUT|TEXTAREA/.test((e.target||{}).tagName||''))return;if(e.key==='ArrowRight')hsGo(HS.page+1);if(e.key==='ArrowLeft')hsGo(HS.page-1);});
   addEventListener('resize',function(){if(pageOn('p-home'))box.scrollLeft=HS.page*box.clientWidth;});
+  if(window.ResizeObserver){var ro=new ResizeObserver(function(){hsFit();});ro.observe(box);ro.observe($('hsWid'));}
+}
+/* подбирает размер иконок и число колонок, чтобы всё влезло без прокрутки */
+function hsFitFor(H,W,n,ph){
+  /* iPad в режиме телефона (широкий экран) — иконки крупнее и просторнее */
+  var wide=ph&&W>600,max=wide?84:ph?60:(document.documentElement.classList.contains('bigicons')?88:72),s,c=4,gy=8;
+  for(s=max;s>=34;s-=2){
+    c=Math.max(ph?4:3,Math.floor(W/(s+(wide?44:ph?16:28))));
+    gy=Math.max(6,Math.round(s*(ph?.22:.3)));
+    var rows=Math.ceil(n/c),lab=s<50?17:(ph?22:25);
+    if(rows*(s+lab)+(rows-1)*gy<=H)break;
+  }
+  return {s:Math.max(s,34),c:c,gy:gy};
+}
+var HSW=110;
+function hsFit(){
+  var box=$('hsApps'),pg=box&&box.firstChild,g=pg&&pg.querySelector('.hsgrid'),hb=document.documentElement;
+  if(!g||!pg.clientHeight)return;
+  var ph=hsPhone(),n=g.children.length,W=g.clientWidth,wid=$('hsWid');
+  /* offsetTop/clientHeight не зависят от анимации открытия (transform) */
+  var H=pg.clientHeight-g.offsetTop-(ph?6:12);
+  /* маленький экран (iPhone SE): если с виджетами иконки выходят мелкими, виджеты прячем */
+  var hid=hb.classList.contains('hsnowid');
+  if(ph&&!hid&&wid.offsetHeight)HSW=wid.offsetHeight+14;
+  var withW=hid?H-HSW:H,f=hsFitFor(withW,W,n,ph),noW=ph&&f.s<44;
+  if(noW)f=hsFitFor(withW+HSW,W,n,ph);
+  hb.classList.toggle('hsnowid',noW);
+  /* после показа или скрытия виджетов перемеряем ещё раз (не больше трёх раз подряд) */
+  if(noW!==hid&&(HS.refit=(HS.refit||0)+1)<4)requestAnimationFrame(hsFit);else HS.refit=0;
+  box.style.setProperty('--hss',f.s+'px');box.style.setProperty('--hsc',String(f.c));box.style.setProperty('--hsgy',f.gy+'px');
+  box.classList.add('fit');box.classList.toggle('small',f.s<50);
 }
 
 async function drawWidgets(){

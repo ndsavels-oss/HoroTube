@@ -26,15 +26,10 @@ html[data-theme="dark"] .paybtn,html[data-theme="space"] .paybtn{background:#fff
 .paybtn:disabled{opacity:.35;cursor:default}
 .paybox .mbtn{margin-top:10px}
 .paybox.busy .paybtn,.paybox.busy .paymsg:empty{display:none}
-/* подсказка у «боковой кнопки» справа */
-.payside{position:fixed;right:0;top:22%;display:flex;align-items:center;gap:10px;pointer-events:none;color:#fff;font:700 14px Manrope,sans-serif;text-shadow:0 1px 6px rgba(0,0,0,.4);opacity:0;transition:opacity .4s .3s}
-.payov.show .payside{opacity:1}
-.payside i{order:2;width:6px;height:74px;border-radius:4px 0 0 4px;background:#fff;box-shadow:0 0 16px rgba(255,255,255,.9);animation:paysidepulse 1.4s ease-in-out infinite}
-.payside span{max-width:140px;text-align:right;animation:paysidetext 1.4s ease-in-out infinite}
-.payside.pulse i{animation:paysidehit .5s ease-out 2}
-@keyframes paysidepulse{50%{transform:translateX(-5px);opacity:.6}}
-@keyframes paysidetext{50%{transform:translateX(-6px)}}
-@keyframes paysidehit{50%{transform:translateX(-12px) scaleY(1.2)}}
+.payhint{margin:8px 4px 0;font-size:12.5px;color:var(--text2);text-align:center}
+.payhint:empty,.payhint[hidden]{display:none}
+.payreset{display:block;margin:8px auto 0;border:0;background:none;color:#0A84FF;font:700 13px Manrope,sans-serif;cursor:pointer}
+.paybox.busy .payreset{display:none}
 /* Face ID, кольцо загрузки и галочка */
 .payst{display:none;flex-direction:column;align-items:center;gap:8px;padding:18px 0 4px}
 .paybox.busy .payst,.paybox.fail .payst,.paybox.ok .payst{display:flex}

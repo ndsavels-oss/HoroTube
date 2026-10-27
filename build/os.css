@@ -625,3 +625,31 @@ html.os .wttop .mbtn{background:rgba(255,255,255,.22);color:#fff}
 html.os #p-clock .mbtn.go{background:#FF9F0A}
 html.os .gledt .mbtn:not(.go){background:rgba(255,255,255,.12);color:#fff}
 .osbtn svg{width:22px;height:22px}
+/* одна страница: иконки подгоняются под экран (hsFit), поиска на домашнем экране нет */
+.hsfind,.hsres{display:none!important}
+#hsApps.fit .hsgrid{grid-template-columns:repeat(var(--hsc),minmax(0,1fr));row-gap:var(--hsgy)}
+#hsApps.fit .happ{min-width:0}
+#hsApps.fit .happ .aicon{--s:var(--hss)}
+#hsApps.fit .happ>span{max-width:calc(var(--hss) + 18px)}
+#hsApps.small .happ{gap:4px}
+#hsApps.small .happ>span{font-size:10px}
+#hsApps.small .abadge{right:calc(50% - var(--hss)/2 - 6px)}
+#hsApps.small .hx{left:calc(50% - var(--hss)/2 - 6px)}
+/* телефон: три компактных виджета в один ряд */
+html.os.phone .hswid{grid-template-columns:repeat(3,1fr);gap:10px}
+html.os.phone .hswid .wid{min-height:0;height:96px;padding:10px 12px;border-radius:20px;overflow:hidden}
+html.os.phone .hswid .wcal{grid-column:auto}
+html.os.phone .hswid .wid small{font-size:10px}
+html.os.phone .hswid .wid b,html.os.phone .hswid .wcal b{font-size:26px}
+html.os.phone .hswid .wid span{font-size:11px;line-height:1.2}
+html.os.phone .hswid .wcal .wlist{overflow:hidden;max-height:28px;font-size:11px}
+html.os.phone .hswid .wclock{gap:4px;padding:8px}
+html.os.phone .hswid .wclock .wface{--s:58px}
+html.os.phone .hsbody{gap:14px}
+html.os.phone .hswid .wev b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.os.phone .hswid .wcal .wlist{margin-top:2px;gap:2px}
+html.os.phone #hsApps{padding-top:0}
+html.os.phone .hspage{padding-top:4px}
+html.os.phone #hsApps.fit .hsgrid{margin-top:10px}
+html.hsnowid #hsWid{display:none}
+#hsApps .hspage{position:relative}
