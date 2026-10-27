@@ -11,6 +11,20 @@ const mock=fs.readFileSync(path.join(__dirname,'mock.js'),'utf8');
 const srv=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html; charset=utf-8'});r.end(html);});
 let fails=0;
 function check(tag,name,ok,info){console.log((ok?'  ok   ':'  FAIL ')+tag+' '+name+(info?' — '+info:''));if(!ok)fails++;}
+async function diag(pg,sel){
+  return pg.evaluate(sel=>{
+    const o=['html: '+document.documentElement.className,'страница: '+[...document.querySelectorAll('.page.show')].map(x=>x.id).join(',')];
+    let e=document.querySelector(sel);
+    if(!e)return o.concat('нет '+sel).join(' · ');
+    const r=e.getBoundingClientRect();o.push(sel+' '+Math.round(r.x)+','+Math.round(r.y)+' '+Math.round(r.width)+'x'+Math.round(r.height));
+    for(;e&&e!==document;e=e.parentElement){const c=getComputedStyle(e);if(c.display==='none'||c.visibility==='hidden'||c.opacity==='0'||e.getBoundingClientRect().width===0){o.push('скрыт из-за: '+e.tagName+'#'+e.id+'.'+String(e.className).replace(/ /g,'.')+' display='+c.display+' vis='+c.visibility+' op='+c.opacity);break;}}
+    return o.join(' · ');
+  },sel);
+}
+async function step(tag,name,pg,fn,sel){
+  try{await fn();}catch(e){check(tag,name,false,e.message.split('\n')[0]+(sel?' | '+await diag(pg,sel).catch(()=>''):''));return false;}
+  return true;
+}
 async function run(type,dev,tag){
   const br=await (type==='webkit'?webkit:chromium).launch();
   const ctx=await br.newContext(dev);const pg=await ctx.newPage();const errs=[];
@@ -35,15 +49,17 @@ async function run(type,dev,tag){
   }
   check(tag,'открыто приложений: '+apps.length,apps.length>10);
   /* Поиск: портфолио по нику и статьи */
-  await pg.evaluate(()=>openApp('search'));await pg.waitForTimeout(500);
-  await pg.fill('.srin','boris');await pg.press('.srin','Enter');await pg.waitForTimeout(1500);
-  check(tag,'карточка портфолио в Поиске',/Борис/.test(await pg.textContent('.srperson').catch(()=>'')));
-  await pg.fill('.srin','@boris');await pg.press('.srin','Enter');await pg.waitForTimeout(1200);
-  check(tag,'статья ученика в Поиске',/вулканы/.test(await pg.textContent('.srhtbox').catch(()=>'')));
+  await pg.evaluate(()=>openApp('search'));await pg.waitForTimeout(800);
+  if(await step(tag,'поле Поиска',pg,()=>pg.fill('.srin','boris',{timeout:5000}),'.srin')){
+    await pg.press('.srin','Enter');await pg.waitForTimeout(1500);
+    check(tag,'карточка портфолио в Поиске',/Борис/.test(await pg.textContent('.srperson').catch(()=>'')));
+    await pg.fill('.srin','@boris');await pg.press('.srin','Enter');await pg.waitForTimeout(1200);
+    check(tag,'статья ученика в Поиске',/вулканы/.test(await pg.textContent('.srhtbox').catch(()=>'')));
+  }
   await pg.screenshot({path:path.join(SHOTS,tag+'-search.png')});
   /* Документы */
   await pg.evaluate(()=>openApp('docs'));await pg.waitForTimeout(500);
-  await pg.click('.dctpl >> nth=2');await pg.waitForTimeout(600);
+  await step(tag,'шаблон Документов',pg,()=>pg.click('.dctpl >> nth=2',{timeout:5000}),'.dctpl');await pg.waitForTimeout(600);
   check(tag,'редактор Документов',await pg.evaluate(()=>!!document.querySelector('.dcpage[contenteditable]')));
   await pg.screenshot({path:path.join(SHOTS,tag+'-docs.png')});
   /* шахматы: цвет пешек (Safari) */
