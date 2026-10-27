@@ -18,16 +18,29 @@ if ! [[ "$FILE" =~ ^sql/[A-Za-z0-9_]+\.sql$ ]] || [ ! -f "$FILE" ]; then
 fi
 case "$FILE" in *_rollback.sql) [ "$MODE" = run ] && echo "::warning::Запускается откат $FILE: он удаляет таблицы и данные этой части.";; esac
 
-export PGSSLMODE="${PGSSLMODE:-require}" PGCONNECT_TIMEOUT=15
-if ! out=$(psql "$DB_URL" -XAtqc 'select version()' 2>&1); then
-  echo "$out" | sed -E 's#postgres(ql)?://[^ ]*#<адрес скрыт>#g'
-  case "$out" in
-    *"password authentication failed"*) echo "::error::Неверный пароль базы в секрете SUPABASE_DB_URL.";;
-    *"Network is unreachable"*|*"could not translate host"*|*"No route"*) echo "::error::Не удалось достучаться до базы. Нужна строка «Session pooler» (адрес …pooler.supabase.com), а не «Direct connection».";;
-    *) echo "::error::Не удалось подключиться к базе.";;
+export PGSSLMODE="${PGSSLMODE:-require}" PGCONNECT_TIMEOUT=10
+if ! cands=$(python3 sql/dburl.py 2>&1); then
+  [ "$cands" = nopw ] && { echo "::error::В строке SUPABASE_DB_URL нет пароля: вместо [YOUR-PASSWORD] впиши пароль базы."; exit 1; }
+  echo "::error::Строка в SUPABASE_DB_URL не похожа на адрес базы или в ней нет пароля. Нужна строка вида postgresql://postgres:ПАРОЛЬ@…"
+  exit 1
+fi
+ok=; last=
+while IFS= read -r u; do
+  if out=$(psql "$u" -XAtqc 'select version()' 2>&1); then ok=$u; break; fi
+  last=$out
+  # the right server answered but refused the password: no point trying other addresses
+  case "$out" in *"password authentication failed"*) break;; esac
+done <<< "$cands"
+if [ -z "$ok" ]; then
+  echo "$last" | sed -E 's#postgres(ql)?://[^ ]*#<адрес скрыт>#g'
+  case "$last" in
+    *"password authentication failed"*) echo "::error::База ответила, но пароль не подошёл. Проверь пароль в секрете SUPABASE_DB_URL.";;
+    *) echo "::error::Не удалось подключиться к базе ни по одному адресу.";;
   esac
   exit 1
 fi
+DB_URL=$ok
+echo "Подключился к ${ok##*@}"
 echo "База: $out"
 echo "Файл: $FILE ($(wc -l < "$FILE") строк, sha256 $(sha256sum "$FILE" | cut -c1-12)), коммит ${GITHUB_SHA:-local}"
 
