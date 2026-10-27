@@ -34,6 +34,7 @@ jobs:
       - name: ${{ inputs.mode }} ${{ inputs.file }}
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           FILE: ${{ inputs.file }}
           MODE: ${{ inputs.mode == 'Выполнить' && 'run' || 'check' }}
         run: bash sql/run.sh

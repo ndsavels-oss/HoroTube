@@ -34,7 +34,7 @@ done <<< "$cands"
 if [ -z "$ok" ]; then
   echo "$last" | sed -E 's#postgres(ql)?://[^ ]*#<адрес скрыт>#g'
   case "$last" in
-    *"password authentication failed"*) echo "::error::База ответила, но пароль не подошёл. Проверь пароль в секрете SUPABASE_DB_URL.";;
+    *"password authentication failed"*) echo "::error::База ответила, но пароль не подошёл. Это должен быть пароль базы (Project Settings → Database), а не пароль от аккаунта Supabase. Положи его в секрет SUPABASE_DB_PASSWORD.";;
     *) echo "::error::Не удалось подключиться к базе ни по одному адресу.";;
   esac
   exit 1
